@@ -66,8 +66,7 @@ enum Choice {
 }
 
 fn spawn(mut cmd: Commands, q_choice: Query<Entity, With<Player>>, mut input: ResMut<Input>) {
-    let entity = q_choice.single();
-    let mut entity_cmd = cmd.entity(entity);
+    let mut entity_cmd = cmd.entity(q_choice.single());
     let binding = std::mem::take(&mut input.0).to_lowercase();
     let input = binding.trim();
 
@@ -89,25 +88,25 @@ fn spawn(mut cmd: Commands, q_choice: Query<Entity, With<Player>>, mut input: Re
 }
 
 fn on_insert_a(query: Query<Entity, Changed<Enum!(Choice::A)>>) {
-    for _ in &query {
+    if !query.is_empty() {
         println!("Inserted `Choice::A`!");
     }
 }
 
 fn on_insert_b(query: Query<Entity, Changed<Enum!(Choice::B)>>) {
-    for _ in &query {
+    if !query.is_empty() {
         println!("Inserted `Choice::B`!");
     }
 }
 
 fn on_insert_c(query: Query<Entity, Changed<Enum!(Choice::C)>>) {
-    for _ in &query {
+    if !query.is_empty() {
         println!("Inserted `Choice::C`!");
     }
 }
 
 fn on_insert_q(query: Query<Entity, Changed<Enum!(Choice::Q)>>) {
-    for _ in &query {
+    if !query.is_empty() {
         println!("Ultra Bad Choice!!! Bye Bye!!");
         exit(0);
     }
