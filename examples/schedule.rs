@@ -1,6 +1,5 @@
 use bevy_ecs::prelude::*;
 use bevy_ecs_enum_filter::prelude::*;
-use std::process::exit;
 
 #[derive(bevy_ecs::schedule::ScheduleLabel, Debug, Hash, PartialEq, Eq, Clone)]
 pub struct MainSchedule;
@@ -25,8 +24,6 @@ macro_rules! register_enum_filter {
 fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     println!("Press any of the following keys to spawn an entity with that value: [`A`, `B`, `C` or `Q`]");
 
-    let mut buffer = String::new();
-
     let mut world = World::new();
     world.insert_resource::<Input>(Input(String::new()));
     world.spawn(Player);
@@ -41,6 +38,8 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
         ));
 
     world.add_schedule(schedule);
+
+    let mut buffer = String::new();
 
     loop {
         std::io::stdin().read_line(&mut buffer)?;
@@ -71,7 +70,6 @@ fn spawn(mut cmd: Commands, q_choice: Query<Entity, With<Player>>, mut input: Re
     let input = binding.trim();
 
     if input.is_empty() {
-        // entity_cmd.remove::<Choice>();
         return;
     }
 
@@ -108,7 +106,7 @@ fn on_insert_c(query: Query<Entity, Changed<Enum!(Choice::C)>>) {
 fn on_insert_q(query: Query<Entity, Changed<Enum!(Choice::Q)>>) {
     if !query.is_empty() {
         println!("Ultra Bad Choice!!! Bye Bye!!");
-        exit(0);
+        std::process::exit(0);
     }
 }
 
