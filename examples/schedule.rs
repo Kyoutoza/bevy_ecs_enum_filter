@@ -29,13 +29,16 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
 
     let mut world = World::new();
     world.insert_resource::<Input>(Input(String::new()));
+    world.spawn(Player);
 
     let mut schedule = Schedule::new(MainSchedule);
-    schedule.add_systems((
-        spawn.run_if(resource_changed::<Input>).in_set(SystemOrder::First),
-        (on_spawn_a, on_spawn_b, on_spawn_c, on_spawn_q).in_set(SystemOrder::Second),
-        register_enum_filter!(Choice).in_set(SystemOrder::End),
-    ));
+    schedule
+        .configure_sets((SystemOrder::First, SystemOrder::Second, SystemOrder::End).chain())
+        .add_systems((
+            spawn.run_if(resource_changed::<Input>).in_set(SystemOrder::First),
+            (on_insert_a, on_insert_b, on_insert_c, on_insert_q).in_set(SystemOrder::Second),
+            register_enum_filter!(Choice).in_set(SystemOrder::End),
+        ));
 
     world.add_schedule(schedule);
 
@@ -44,9 +47,13 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
         world.resource_mut::<Input>().0 = std::mem::take(&mut buffer);
         for _ in 0..10 {
             world.run_schedule(MainSchedule);
+            world.flush();
         }
     }
 }
+
+#[derive(Component, Debug)]
+struct Player;
 
 #[derive(Component, Debug, EnumFilter)]
 enum Choice {
@@ -56,44 +63,41 @@ enum Choice {
     Q,
 }
 
-fn spawn(mut commands: Commands, mut input: ResMut<Input>) {
+fn spawn(mut cmd: Commands, q_choice: Query<Entity, With<Player>>, mut input: ResMut<Input>) {
+    let entity = q_choice.single();
+    let mut entity_cmd = cmd.entity(entity);
     let input = std::mem::take(&mut input.0).to_lowercase();
 
-    if input.contains('a') {
-        commands.spawn((Choice::A,));
-    }
-    if input.contains('b') {
-        commands.spawn((Choice::B,));
-    }
-    if input.contains('c') {
-        commands.spawn((Choice::C,));
-    }
-    if input.contains('q') {
-        commands.spawn((Choice::Q,));
+    match input.as_str().trim() {
+        "a" => entity_cmd.insert(Choice::A),
+        "b" => entity_cmd.insert(Choice::B),
+        "c" => entity_cmd.insert(Choice::C),
+        "q" => entity_cmd.insert(Choice::Q),
+        _ => entity_cmd.remove::<Choice>(),
+    };
+}
+
+fn on_insert_a(query: Query<Entity, Changed<Enum!(Choice::A)>>) {
+    for _ in &query {
+        println!("Inserted `Choice::A`!");
     }
 }
 
-fn on_spawn_a(query: Query<Entity, Added<Enum!(Choice::A)>>) {
+fn on_insert_b(query: Query<Entity, Changed<Enum!(Choice::B)>>) {
     for _ in &query {
-        println!("Spawned entity with `Choice::A`!");
+        println!("Inserted `Choice::B`!");
     }
 }
 
-fn on_spawn_b(query: Query<Entity, Added<Enum!(Choice::B)>>) {
+fn on_insert_c(query: Query<Entity, Changed<Enum!(Choice::C)>>) {
     for _ in &query {
-        println!("Spawned entity with `Choice::B`!");
+        println!("Inserted `Choice::C`!");
     }
 }
 
-fn on_spawn_c(query: Query<Entity, Added<Enum!(Choice::C)>>) {
+fn on_insert_q(query: Query<Entity, Changed<Enum!(Choice::Q)>>) {
     for _ in &query {
-        println!("Spawned entity with `Choice::C`!");
-    }
-}
-
-fn on_spawn_q(query: Query<Entity, Added<Enum!(Choice::Q)>>) {
-    for _ in &query {
-        println!("Spawned entity with `Choice::Q`! So, bye bye!!");
+        println!("Inserted `Choice::Q`! So, bye bye!!");
         exit(0);
     }
 }
