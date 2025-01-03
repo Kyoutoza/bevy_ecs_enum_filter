@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 mod filter_trait;
 mod systems;
 
