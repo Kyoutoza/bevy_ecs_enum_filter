@@ -1,6 +1,6 @@
 # bevy_ecs_enum_filter
 
-cloned [forked](https://github.com/mikkelens/bevy_enum_filter) from [bevy_enum_filter](https://github.com/MrGVSV/bevy_enum_filter) by [MrGVSV](https://github.com/MrGVSV) and edited for bevy_ecs crate for people who don't need bevy_app crate.
+cloned [forked](https://github.com/mikkelens/bevy_enum_filter) from [bevy_enum_filter](https://github.com/MrGVSV/bevy_enum_filter) by [MrGVSV](https://github.com/MrGVSV) and edited for bevy_ecs crate without bevy_app crate (mainly for me).
 
 remove_marker_for_enum is added, which retrieves the removed enum component and removes the marker.  
 However, needs to take care in the system calling order.

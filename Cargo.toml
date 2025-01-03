@@ -9,3 +9,7 @@ description = "cloned https://github.com/mikkelens/bevy_enum_filter forked https
 [dependencies]
 bevy_ecs = { version = "0.15", default-features = false }
 bevy_ecs_enum_filter_derive = { path = "./bevy_ecs_enum_filter_derive" }
+
+[[example]]
+name = "schedule"
+path = "./examples/schedule.rs"

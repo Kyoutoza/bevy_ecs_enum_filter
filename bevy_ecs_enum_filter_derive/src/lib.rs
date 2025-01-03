@@ -67,10 +67,10 @@ pub fn derive_enum_filter(item: TokenStream) -> TokenStream {
 
     TokenStream::from(quote! {
         impl #impl_generics #bevy_ecs_enum_filter::EnumFilter for #ident #ty_generics #where_clause {
-            fn set_marker(commands: &mut #bevy_ecs::system::EntityCommands, value: &Self) {
+            fn set_marker(cmd: &mut #bevy_ecs::system::EntityCommands, value: &Self) {
                 #(if matches!(value, #ident::#variants{..}) {
-                    let entity = commands.id();
-                    let mut commands = commands.commands();
+                    let entity = cmd.id();
+                    let mut commands = cmd.commands();
 
                     commands.queue(move |world: &mut #bevy_ecs::world::World| {
                         let mut entity_mut = world.entity_mut(entity);
@@ -80,12 +80,12 @@ pub fn derive_enum_filter(item: TokenStream) -> TokenStream {
                         }
                     });
                 } else {
-                    commands.remove::<#mod_ident::#variants>();
+                    cmd.remove::<#mod_ident::#variants>();
                 })*
             }
 
-            fn remove_marker(commands: &mut #bevy_ecs::system::EntityCommands) {
-                #(commands.remove::<#mod_ident::#variants>();)*
+            fn remove_marker(cmd: &mut #bevy_ecs::system::EntityCommands) {
+                #(cmd.remove::<#mod_ident::#variants>();)*
             }
         }
 
