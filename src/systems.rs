@@ -9,7 +9,6 @@ impl EnumFilterSystems {
     /// A system that watches for changes to the given enum component.
     pub fn watch_for_enum<T: EnumFilter>(mut commands: Commands, query: Query<(Entity, &T), Changed<T>>) {
         for (entity, value) in &query {
-            println!("watch {entity:?}");
             T::set_marker(&mut commands.entity(entity), value);
         }
     }
