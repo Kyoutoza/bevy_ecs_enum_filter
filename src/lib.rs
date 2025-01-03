@@ -44,8 +44,6 @@ mod tests {
         assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::A)>>().get_single(&world).is_ok());
         assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::B)>>().get_single(&world).is_err());
 
-        world.flush();
-
         world.entity_mut(entity).remove::<TestEnum>();
 
         update_systems
@@ -59,8 +57,6 @@ mod tests {
             .any(|target| target == entity));
         assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::A)>>().get_single(&world).is_err());
 
-        world.flush();
-
         world.entity_mut(entity).insert(TestEnum::B);
 
         update_systems
@@ -69,8 +65,6 @@ mod tests {
 
         assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::A)>>().get_single(&world).is_err());
         assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::B)>>().get_single(&world).is_ok());
-
-        world.flush();
 
         world.entity_mut(entity).insert(TestEnum::C);
 
@@ -98,8 +92,6 @@ mod tests {
         [world.register_system(EnumFilterSystems::create_marker_for_enum::<TestEnum>)]
             .into_iter()
             .for_each(|id| world.run_system(id).unwrap_or_else(|e| panic!("{e}")));
-
-        world.flush();
 
         world.entity_mut(entity).remove::<TestEnum>();
         world.entity_mut(entity).insert(TestEnum::C);

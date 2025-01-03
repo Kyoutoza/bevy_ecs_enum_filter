@@ -41,9 +41,6 @@ fn main() {
     assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::A)>>().get_single(&world).is_ok());
     assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::B)>>().get_single(&world).is_err());
 
-    world.flush();
-
-    // 2nd frame
     world.entity_mut(entity).remove::<TestEnum>();
 
     update_systems
@@ -57,9 +54,6 @@ fn main() {
         .any(|target| target == entity));
     assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::A)>>().get_single(&world).is_err());
 
-    world.flush();
-
-    // 3rd frame
     world.entity_mut(entity).insert(TestEnum::B);
 
     update_systems
@@ -69,9 +63,6 @@ fn main() {
     assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::A)>>().get_single(&world).is_err());
     assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::B)>>().get_single(&world).is_ok());
 
-    world.flush();
-
-    // 4th frame
     world.entity_mut(entity).insert(TestEnum::C);
 
     update_systems

@@ -36,7 +36,7 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
         .configure_sets((SystemOrder::First, SystemOrder::Second, SystemOrder::End).chain())
         .add_systems((
             spawn.run_if(resource_changed::<Input>).in_set(SystemOrder::First),
-            (on_insert_a, on_insert_b, on_insert_c, on_insert_q).in_set(SystemOrder::Second),
+            (on_insert_a, on_insert_b, on_insert_c, on_insert_q, remove_announce).in_set(SystemOrder::Second),
             register_enum_filter!(Choice).in_set(SystemOrder::End),
         ));
 
@@ -71,7 +71,7 @@ fn spawn(mut cmd: Commands, q_choice: Query<Entity, With<Player>>, mut input: Re
     let input = binding.trim();
 
     if input.is_empty() {
-        entity_cmd.remove::<Choice>();
+        // entity_cmd.remove::<Choice>();
         return;
     }
 
@@ -110,4 +110,10 @@ fn on_insert_q(query: Query<Entity, Changed<Enum!(Choice::Q)>>) {
         println!("Ultra Bad Choice!!! Bye Bye!!");
         exit(0);
     }
+}
+
+fn remove_announce(mut removed: RemovedComponents<Choice>) {
+    removed.read().into_iter().for_each(|e| {
+        println!("Removed a Choice component due to your bad choice from entity: {e:?}");
+    });
 }
