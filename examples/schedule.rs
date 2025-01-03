@@ -45,10 +45,12 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     loop {
         std::io::stdin().read_line(&mut buffer)?;
         world.resource_mut::<Input>().0 = std::mem::take(&mut buffer);
+
         for _ in 0..10 {
             world.run_schedule(MainSchedule);
-            world.flush();
         }
+
+        print!("\x1b[2J\x1b[1;1H");
     }
 }
 
@@ -66,14 +68,23 @@ enum Choice {
 fn spawn(mut cmd: Commands, q_choice: Query<Entity, With<Player>>, mut input: ResMut<Input>) {
     let entity = q_choice.single();
     let mut entity_cmd = cmd.entity(entity);
-    let input = std::mem::take(&mut input.0).to_lowercase();
+    let binding = std::mem::take(&mut input.0).to_lowercase();
+    let input = binding.trim();
 
-    match input.as_str().trim() {
+    if input.is_empty() {
+        entity_cmd.remove::<Choice>();
+        return;
+    }
+
+    match input {
         "a" => entity_cmd.insert(Choice::A),
         "b" => entity_cmd.insert(Choice::B),
         "c" => entity_cmd.insert(Choice::C),
         "q" => entity_cmd.insert(Choice::Q),
-        _ => entity_cmd.remove::<Choice>(),
+        _ => {
+            println!("Bad Choice!");
+            entity_cmd.remove::<Choice>()
+        }
     };
 }
 
@@ -97,7 +108,7 @@ fn on_insert_c(query: Query<Entity, Changed<Enum!(Choice::C)>>) {
 
 fn on_insert_q(query: Query<Entity, Changed<Enum!(Choice::Q)>>) {
     for _ in &query {
-        println!("Inserted `Choice::Q`! So, bye bye!!");
+        println!("Ultra Bad Choice!!! Bye Bye!!");
         exit(0);
     }
 }
