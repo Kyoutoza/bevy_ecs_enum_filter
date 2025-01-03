@@ -1,7 +1,6 @@
 # bevy_ecs_enum_filter
 
-cloned [forked](https://github.com/mikkelens/bevy_enum_filter) from [bevy_enum_filter](https://github.com/MrGVSV/bevy_enum_filter)
-and edited for bevy_ecs crate for people who don't need bevy_app crate.
+cloned [forked](https://github.com/mikkelens/bevy_enum_filter) from [bevy_enum_filter](https://github.com/MrGVSV/bevy_enum_filter) by [MrGVSV](https://github.com/MrGVSV) and edited for bevy_ecs crate for people who don't need bevy_app crate.  
 The addition is remove_marker_for_enum for removed enum component fetching then remove marker.
 
 The license complies with the original crate.
