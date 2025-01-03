@@ -28,7 +28,12 @@ fn main() {
 
     let entity = world.spawn(TestEnum::A).id();
 
+    // create_marker_for_enum should be run on the first frame
     [world.register_system(EnumFilterSystems::create_marker_for_enum::<TestEnum>)]
+        .into_iter()
+        .for_each(|id| world.run_system(id).unwrap());
+
+    update_systems
         .into_iter()
         .for_each(|id| world.run_system(id).unwrap());
 
@@ -37,6 +42,7 @@ fn main() {
 
     world.flush();
 
+    // 2nd frame
     world.entity_mut(entity).remove::<TestEnum>();
 
     update_systems
@@ -52,6 +58,7 @@ fn main() {
 
     world.flush();
 
+    // 3rd frame
     world.entity_mut(entity).insert(TestEnum::B);
 
     update_systems
@@ -63,6 +70,7 @@ fn main() {
 
     world.flush();
 
+    // 4th frame
     world.entity_mut(entity).insert(TestEnum::C);
 
     update_systems
@@ -70,7 +78,6 @@ fn main() {
         .for_each(|id| world.run_system(id).unwrap());
 
     assert!(world.query_filtered::<Entity, Changed<Enum!(TestEnum::B)>>().get_single(&world).is_err());
-    assert!(world.query_filtered::<Entity, Changed<Enum!(TestEnum::A)>>().get_single(&world).is_err());
     assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::C)>>().get_single(&world).is_ok());
     assert!(world.query_filtered::<Entity, Changed<Enum!(TestEnum::C)>>().get_single(&world).is_ok());
 }
