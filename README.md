@@ -37,6 +37,7 @@ fn main() {
         .into_iter()
         .for_each(|id| world.run_system(id).unwrap());
 
+    assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::A)>>().get_single(&world).is_ok());
     assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::A)>>().get_single(&world).is_ok());
     assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::B)>>().get_single(&world).is_err());
 
