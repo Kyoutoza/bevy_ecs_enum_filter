@@ -14,13 +14,6 @@ pub(crate) enum SystemOrder {
 #[derive(Resource, Clone, Debug)]
 struct Input(pub String);
 
-/// example for instant registration
-macro_rules! register_enum_filter {
-    ($ty:ty) => {
-        (EnumFilterSystems::remove_marker_for_enum::<$ty>, EnumFilterSystems::watch_for_enum::<$ty>).chain()
-    };
-}
-
 fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     println!("Press any of the following keys to spawn an entity with that value: [`A`, `B`, `C` or `Q`]");
 
@@ -34,7 +27,7 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
         .add_systems((
             spawn.run_if(resource_changed::<Input>).in_set(SystemOrder::First),
             (on_insert_a, on_insert_b, on_insert_c, on_insert_q, remove_announce).in_set(SystemOrder::Second),
-            register_enum_filter!(Choice).in_set(SystemOrder::End),
+            register_enum_filter_systems!(Choice).in_set(SystemOrder::End),
         ));
 
     world.add_schedule(schedule);

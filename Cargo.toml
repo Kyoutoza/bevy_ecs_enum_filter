@@ -4,7 +4,11 @@ version = "0.1.0"
 edition = "2021"
 description = "cloned https://github.com/mikkelens/bevy_enum_filter forked https://github.com/MrGVSV/bevy_enum_filter then edited"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+# use bevy crate instead of bevy_ecs crate
+app = ["bevy_ecs_enum_filter_derive/app"]
+# macro_export for register_enum_filter_systems
+macro = []
 
 [dependencies]
 bevy_ecs = { version = "0.15", default-features = false }
@@ -13,3 +17,4 @@ bevy_ecs_enum_filter_derive = { path = "./bevy_ecs_enum_filter_derive" }
 [[example]]
 name = "schedule"
 path = "./examples/schedule.rs"
+required-features = ["macro"]

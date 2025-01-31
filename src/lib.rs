@@ -8,8 +8,19 @@ pub use filter_trait::EnumFilter;
 
 pub mod prelude {
     pub use super::filter_trait::EnumFilter;
+    #[cfg(feature = "macro")]
+    pub use crate::register_enum_filter_systems;
     pub use crate::systems::EnumFilterSystems;
     pub use bevy_ecs_enum_filter_derive::{Enum, EnumFilter};
+}
+
+#[cfg(feature = "macro")]
+/// instant registration
+#[macro_export]
+macro_rules! register_enum_filter_systems {
+    ($ty:ty) => {
+        (EnumFilterSystems::remove_marker_for_enum::<$ty>, EnumFilterSystems::watch_for_enum::<$ty>).chain()
+    };
 }
 
 #[cfg(test)]

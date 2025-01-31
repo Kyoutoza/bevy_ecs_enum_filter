@@ -51,7 +51,16 @@ pub fn derive_enum_filter(item: TokenStream) -> TokenStream {
     let ident = &input.ident;
     let mod_ident = get_mod_ident(ident);
     let bevy_ecs_enum_filter = get_crate("bevy_ecs_enum_filter");
-    let bevy_ecs = get_crate("bevy_ecs");
+    let bevy = {
+        #[cfg(not(feature = "app"))]
+        {
+            get_crate("bevy_ecs")
+        }
+        #[cfg(feature = "app")]
+        {
+            get_crate("bevy")
+        }
+    };
 
     let variants = data.variants.iter().map(|variant| &variant.ident).collect::<Vec<_>>();
 
@@ -67,12 +76,12 @@ pub fn derive_enum_filter(item: TokenStream) -> TokenStream {
 
     TokenStream::from(quote! {
         impl #impl_generics #bevy_ecs_enum_filter::EnumFilter for #ident #ty_generics #where_clause {
-            fn set_marker(cmd: &mut #bevy_ecs::system::EntityCommands, value: &Self) {
+            fn set_marker(cmd: &mut #bevy::prelude::EntityCommands, value: &Self) {
                 #(if matches!(value, #ident::#variants{..}) {
                     let entity = cmd.id();
                     let mut commands = cmd.commands();
 
-                    commands.queue(move |world: &mut #bevy_ecs::world::World| {
+                    commands.queue(move |world: &mut #bevy::prelude::World| {
                         let mut entity_mut = world.entity_mut(entity);
                         if !entity_mut.contains::<#mod_ident::#variants>() {
                             // Only insert the marker if it doesn't already exist
@@ -84,7 +93,7 @@ pub fn derive_enum_filter(item: TokenStream) -> TokenStream {
                 })*
             }
 
-            fn remove_marker(cmd: &mut #bevy_ecs::system::EntityCommands) {
+            fn remove_marker(cmd: &mut #bevy::prelude::EntityCommands) {
                 #(cmd.remove::<#mod_ident::#variants>();)*
             }
         }
@@ -95,7 +104,7 @@ pub fn derive_enum_filter(item: TokenStream) -> TokenStream {
             #(
                 #[doc = #docs]
                 #[doc(hidden)]
-                #[derive(#bevy_ecs::component::Component)]
+                #[derive(#bevy::prelude::Component)]
                 pub struct #variants;
             )*
         }
@@ -164,7 +173,8 @@ fn get_crate(name: &str) -> proc_macro2::TokenStream {
     match found_crate {
         FoundCrate::Itself => quote!(crate),
         FoundCrate::Name(name) => {
-            let ident = format_ident!("{}", &name);
+            let ident = Ident::new(&name, proc_macro2::Span::call_site());
+            // let ident = format_ident!("{}", &name);
             quote!( #ident )
         }
     }
