@@ -1,5 +1,7 @@
 #![doc = include_str!("../README.md")]
 
+#[cfg(feature = "app")]
+mod extensions;
 mod filter_trait;
 mod systems;
 
@@ -8,6 +10,8 @@ pub use filter_trait::EnumFilter;
 
 pub mod prelude {
     pub use super::filter_trait::EnumFilter;
+    #[cfg(feature = "app")]
+    pub use crate::extensions::AddEnumFilter;
     #[cfg(feature = "macro")]
     pub use crate::register_enum_filter_systems;
     pub use crate::systems::EnumFilterSystems;
