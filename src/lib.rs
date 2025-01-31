@@ -51,16 +51,13 @@ mod tests {
 
         let entity = world.spawn(TestEnum::A).id();
 
-        [world.register_system(EnumFilterSystems::create_marker_for_enum::<TestEnum>)]
-            .into_iter()
-            .for_each(|id| world.run_system(id).unwrap_or_else(|e| panic!("{e}")));
+        update_systems.into_iter().for_each(|id| world.run_system(id).unwrap());
 
         assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::A)>>().get_single(&world).is_ok());
         assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::A)>>().get_single(&world).is_ok());
         assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::B)>>().get_single(&world).is_err());
 
         world.entity_mut(entity).remove::<TestEnum>();
-
         update_systems
             .into_iter()
             .for_each(|id| world.run_system(id).unwrap_or_else(|e| panic!("{e}")));
@@ -73,7 +70,6 @@ mod tests {
         assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::A)>>().get_single(&world).is_err());
 
         world.entity_mut(entity).insert(TestEnum::B);
-
         update_systems
             .into_iter()
             .for_each(|id| world.run_system(id).unwrap_or_else(|e| panic!("{e}")));
@@ -82,12 +78,11 @@ mod tests {
         assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::B)>>().get_single(&world).is_ok());
 
         world.entity_mut(entity).insert(TestEnum::C);
-
         update_systems
             .into_iter()
             .for_each(|id| world.run_system(id).unwrap_or_else(|e| panic!("{e}")));
 
-        assert!(world.query_filtered::<Entity, Changed<Enum!(TestEnum::B)>>().get_single(&world).is_err());
+        assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::B)>>().iter(&world).len() == 0);
         assert!(world.query_filtered::<Entity, Changed<Enum!(TestEnum::A)>>().get_single(&world).is_err());
         assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::C)>>().get_single(&world).is_ok());
         assert!(world.query_filtered::<Entity, Changed<Enum!(TestEnum::C)>>().get_single(&world).is_ok());

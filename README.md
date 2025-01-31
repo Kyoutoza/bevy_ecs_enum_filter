@@ -28,21 +28,16 @@ fn main() {
 
     let entity = world.spawn(TestEnum::A).id();
 
-    // create_marker_for_enum should be run on the first frame
-    [world.register_system(EnumFilterSystems::create_marker_for_enum::<TestEnum>)]
-        .into_iter()
-        .for_each(|id| world.run_system(id).unwrap());
-
+    // update world
     update_systems
         .into_iter()
         .for_each(|id| world.run_system(id).unwrap());
 
     assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::A)>>().get_single(&world).is_ok());
-    assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::A)>>().get_single(&world).is_ok());
-    assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::B)>>().get_single(&world).is_err());
+    assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::B)>>().get_single(&world).is_err());
 
+    // world detects Enum source is detected
     world.entity_mut(entity).remove::<TestEnum>();
-
     update_systems
         .into_iter()
         .for_each(|id| world.run_system(id).unwrap());
@@ -52,26 +47,23 @@ fn main() {
         .query_filtered::<Entity, Without<Enum!(TestEnum::A)>>()
         .iter(&world)
         .any(|target| target == entity));
-    assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::A)>>().get_single(&world).is_err());
 
+    // insert other TestEnum type
     world.entity_mut(entity).insert(TestEnum::B);
-
     update_systems
         .into_iter()
         .for_each(|id| world.run_system(id).unwrap());
 
-    assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::A)>>().get_single(&world).is_err());
     assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::B)>>().get_single(&world).is_ok());
 
+    // overwrite TestEnum by other type
     world.entity_mut(entity).insert(TestEnum::C);
-
     update_systems
         .into_iter()
         .for_each(|id| world.run_system(id).unwrap());
 
-    assert!(world.query_filtered::<Entity, Changed<Enum!(TestEnum::B)>>().get_single(&world).is_err());
+    assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::B)>>().get_single(&world).is_err());
     assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::C)>>().get_single(&world).is_ok());
-    assert!(world.query_filtered::<Entity, Changed<Enum!(TestEnum::C)>>().get_single(&world).is_ok());
 }
 ```
 
