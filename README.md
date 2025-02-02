@@ -64,6 +64,14 @@ fn main() {
 
     assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::B)>>().get_single(&world).is_err());
     assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::C)>>().get_single(&world).is_ok());
+
+    // use markers for query directly
+    {
+        // EnumFilter proc macro generate a mod
+        use test_enum_filters::*;
+            assert!(world.query_filtered::<Entity, With<B>>().get_single(&world).is_err());
+            assert!(world.query_filtered::<Entity, Added<C>>().get_single(&world).is_ok());
+    }
 }
 ```
 

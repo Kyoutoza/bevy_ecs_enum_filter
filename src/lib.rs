@@ -45,6 +45,34 @@ mod tests {
     }
 
     #[test]
+    fn test_abbr() {
+        use test_enum_filters::*;
+
+        let mut world = World::new();
+        let update_systems = [
+            world.register_system(EnumFilterSystems::remove_marker_for_enum::<TestEnum>),
+            world.register_system(EnumFilterSystems::watch_for_enum::<TestEnum>),
+        ];
+
+        let entity = world.spawn(TestEnum::A).id();
+
+        update_systems.into_iter().for_each(|id| world.run_system(id).unwrap());
+
+        assert!(world.query_filtered::<Entity, With<A>>().get_single(&world).is_ok());
+        assert!(world.query_filtered::<Entity, Added<A>>().get_single(&world).is_ok());
+        assert!(world.query_filtered::<Entity, Added<B>>().get_single(&world).is_err());
+
+        world.entity_mut(entity).remove::<TestEnum>();
+        update_systems
+            .into_iter()
+            .for_each(|id| world.run_system(id).unwrap_or_else(|e| panic!("{e}")));
+
+        assert!(world.query_filtered::<Entity, With<A>>().get_single(&world).is_err());
+        assert!(world.query_filtered::<Entity, Without<A>>().iter(&world).any(|target| target == entity));
+        assert!(world.query_filtered::<Entity, Added<A>>().get_single(&world).is_err());
+    }
+
+    #[test]
     fn test_filter() {
         let mut world = World::new();
         let update_systems = [
