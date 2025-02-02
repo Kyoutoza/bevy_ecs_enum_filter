@@ -1,4 +1,7 @@
 use crate::filter_trait::EnumFilter;
+#[cfg(feature = "bevy")]
+use bevy::prelude::{App, PostStartup, Update};
+#[cfg(feature = "app")]
 use bevy_app::{App, PostStartup, Update};
 use bevy_ecs::schedule::IntoSystemConfigs;
 

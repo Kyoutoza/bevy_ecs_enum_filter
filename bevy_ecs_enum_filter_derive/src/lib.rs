@@ -52,11 +52,11 @@ pub fn derive_enum_filter(item: TokenStream) -> TokenStream {
     let mod_ident = get_mod_ident(ident);
     let bevy_ecs_enum_filter = get_crate("bevy_ecs_enum_filter");
     let bevy = {
-        #[cfg(not(feature = "app"))]
+        #[cfg(not(feature = "bevy"))]
         {
             get_crate("bevy_ecs")
         }
-        #[cfg(feature = "app")]
+        #[cfg(feature = "bevy")]
         {
             get_crate("bevy")
         }

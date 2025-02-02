@@ -2,6 +2,8 @@
 
 #[cfg(feature = "app")]
 mod extensions;
+#[cfg(feature = "bevy")]
+mod extensions;
 mod filter_trait;
 mod systems;
 
@@ -10,6 +12,8 @@ pub use filter_trait::EnumFilter;
 
 pub mod prelude {
     pub use super::filter_trait::EnumFilter;
+    #[cfg(feature = "bevy")]
+    pub use crate::extensions::AddEnumFilter;
     #[cfg(feature = "app")]
     pub use crate::extensions::AddEnumFilter;
     #[cfg(feature = "macro")]

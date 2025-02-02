@@ -8,6 +8,7 @@ proc-macro = true
 
 [features]
 app = []
+bevy = []
 
 [dependencies]
 syn = "2.0"
