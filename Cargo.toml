@@ -9,15 +9,20 @@ description = "cloned https://github.com/mikkelens/bevy_enum_filter forked https
 app = ["bevy_ecs_enum_filter_derive/app", "bevy_app"]
 
 # use bevy crate instead of bevy_ecs crate
-bevy = ["bevy_ecs_enum_filter_derive/bevy"]
+bevy = ["dep:bevy", "bevy_ecs_enum_filter_derive/bevy"]
 
 # macro_export for register_enum_filter_systems for non app feature
 macro = []
 
 [dependencies]
+bevy = { version = "0.15", default-features = false, optional = true }
 bevy_app = { version = "0.15", default-features = false, optional = true }
 bevy_ecs = { version = "0.15", default-features = false }
 bevy_ecs_enum_filter_derive = { path = "./bevy_ecs_enum_filter_derive" }
+
+[dev-dependencies]
+bevy = { version = "0.15", default-features = false }
+bevy_app = { version = "0.15", default-features = false }
 
 [[example]]
 name = "schedule"
