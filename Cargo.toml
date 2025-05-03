@@ -5,8 +5,13 @@ edition = "2021"
 description = "cloned https://github.com/mikkelens/bevy_enum_filter forked https://github.com/MrGVSV/bevy_enum_filter then edited"
 
 [features]
+default = ["ecs"]
+
+# use with only bevy_ecs crate
+ecs = ["bevy_ecs_enum_filter_derive/ecs", "bevy_ecs"]
+
 # use bevy_app crate with bevy_ecs crate
-app = ["bevy_ecs_enum_filter_derive/app", "bevy_app"]
+app = ["bevy_ecs_enum_filter_derive/app", "bevy_app", "bevy_ecs"]
 
 # use bevy crate instead of bevy_ecs crate
 bevy = ["dep:bevy", "bevy_ecs_enum_filter_derive/bevy"]
@@ -17,7 +22,7 @@ macro = []
 [dependencies]
 bevy = { version = "0.16", default-features = false, optional = true }
 bevy_app = { version = "0.16", default-features = false, optional = true }
-bevy_ecs = { version = "0.16", default-features = false }
+bevy_ecs = { version = "0.16", default-features = false, optional = true }
 bevy_ecs_enum_filter_derive = { path = "./bevy_ecs_enum_filter_derive" }
 
 [dev-dependencies]

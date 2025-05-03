@@ -1,4 +1,14 @@
 #![doc = include_str!("../README.md")]
+#[cfg(all(feature = "bevy", feature = "ecs"))]
+compile_error!(
+    r#"feature "bevy" and feature "ecs" cannot be enabled at the same time.
+try bevy_ecs_enum_filter = { version = "*", default-features = false, features = ["bevy"] }"#
+);
+#[cfg(all(feature = "bevy", feature = "app"))]
+compile_error!(
+    r#"feature "bevy" and feature "app" cannot be enabled at the same time.
+try bevy_ecs_enum_filter = { version = "*", features = ["app"] }"#
+);
 
 #[cfg(feature = "app")]
 mod extensions;

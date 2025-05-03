@@ -9,10 +9,11 @@ proc-macro = true
 [features]
 app = []
 bevy = []
+ecs = []
 
 [dependencies]
 syn = "2.0"
 proc-macro2 = "1.0"
-proc-macro-crate = "3.2"
+proc-macro-crate = "3.3"
 quote = "1.0"
-convert_case = "0.6.0"
+convert_case = "0.8.0"
