@@ -1,4 +1,7 @@
 use crate::filter_trait::EnumFilter;
+#[cfg(feature = "bevy")]
+use bevy::prelude::*;
+#[cfg(feature = "ecs")]
 use bevy_ecs::{
     prelude::{Changed, Commands, Entity, Query},
     removal_detection::RemovedComponents,

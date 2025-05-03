@@ -1,3 +1,6 @@
+#[cfg(feature = "bevy")]
+use bevy::prelude::*;
+#[cfg(feature = "ecs")]
 use bevy_ecs::{prelude::Component, system::EntityCommands};
 
 /// A trait used to denote an enum as "filterable".
