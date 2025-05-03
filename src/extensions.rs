@@ -7,7 +7,7 @@ use bevy::{
 #[cfg(feature = "app")]
 use bevy_app::{App, PostStartup, Update};
 #[cfg(not(feature = "bevy"))]
-use bevy_ecs::schedule::IntoSystemConfigs;
+use bevy_ecs::schedule::IntoScheduleConfigs;
 
 /// Extension trait for [`App`] that enables adding an [enum filter].
 ///
