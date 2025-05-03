@@ -27,7 +27,7 @@ impl EnumFilterSystems {
     /// Shohuld be run before watch_for_enum
     pub fn remove_marker_for_enum<T: EnumFilter>(mut cmd: Commands, mut removed: RemovedComponents<T>) {
         removed.read().for_each(|entity| {
-            let Some(mut entity_cmd) = cmd.get_entity(entity) else { return };
+            let Ok(mut entity_cmd) = cmd.get_entity(entity) else { return };
             T::remove_marker(&mut entity_cmd);
         });
     }
