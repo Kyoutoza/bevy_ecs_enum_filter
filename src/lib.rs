@@ -29,10 +29,6 @@ pub mod prelude {
     #[cfg(feature = "macro")]
     pub use crate::register_enum_filter_systems;
     pub use crate::systems::EnumFilterSystems;
-    #[cfg(feature = "bevy")]
-    use bevy::prelude::*;
-    #[cfg(feature = "ecs")]
-    use bevy_ecs::prelude::*;
     pub use bevy_ecs_enum_filter_derive::{Enum, EnumFilter};
 }
 
@@ -51,6 +47,7 @@ macro_rules! register_enum_filter_systems {
 mod test_ecs {
     use super::*;
     use crate::prelude::*;
+    use bevy_ecs::prelude::*;
 
     #[derive(Component, Debug, EnumFilter)]
     enum TestEnum {
@@ -172,7 +169,7 @@ mod test_ecs {
 mod test_bevy {
     use super::*;
     use crate::prelude::*;
-    use bevy::prelude::*;
+    use bevy::prelude::Component;
 
     #[derive(Component, Debug, EnumFilter)]
     enum TestEnum {

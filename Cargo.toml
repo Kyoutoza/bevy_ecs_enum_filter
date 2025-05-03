@@ -5,14 +5,14 @@ edition = "2021"
 description = "cloned https://github.com/mikkelens/bevy_enum_filter forked https://github.com/MrGVSV/bevy_enum_filter then edited"
 
 [features]
-#default = ["ecs"]
+# default = ["ecs"]
 default = ["bevy"]
 
 # use with only bevy_ecs crate
-ecs = ["dep:bevy_ecs", "bevy_ecs_enum_filter_derive/ecs"]
+ecs = ["bevy_ecs", "bevy_ecs_enum_filter_derive/ecs"]
 
 # use bevy_app crate with bevy_ecs crate
-app = ["dep:bevy_app", "dep:bevy_ecs", "bevy_ecs_enum_filter_derive/app"]
+app = ["bevy_app", "bevy_ecs", "bevy_ecs_enum_filter_derive/app"]
 
 # use bevy crate instead of bevy_ecs crate
 bevy = ["dep:bevy", "bevy_ecs_enum_filter_derive/bevy"]
