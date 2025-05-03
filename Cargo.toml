@@ -1,6 +1,6 @@
 [package]
 name = "bevy_ecs_enum_filter"
-version = "0.16.0"
+version = "0.16.1"
 edition = "2021"
 description = "cloned https://github.com/mikkelens/bevy_enum_filter forked https://github.com/MrGVSV/bevy_enum_filter then edited"
 
