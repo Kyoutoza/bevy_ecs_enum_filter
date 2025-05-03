@@ -33,8 +33,8 @@ fn main() {
         .into_iter()
         .for_each(|id| world.run_system(id).unwrap());
 
-    assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::A)>>().get_single(&world).is_ok());
-    assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::B)>>().get_single(&world).is_err());
+    assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::A)>>().single(&world).is_ok());
+    assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::B)>>().single(&world).is_err());
 
     // world detects Enum source is detected
     world.entity_mut(entity).remove::<TestEnum>();
@@ -42,7 +42,7 @@ fn main() {
         .into_iter()
         .for_each(|id| world.run_system(id).unwrap());
 
-    assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::A)>>().get_single(&world).is_err());
+    assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::A)>>().single(&world).is_err());
     assert!(world
         .query_filtered::<Entity, Without<Enum!(TestEnum::A)>>()
         .iter(&world)
@@ -54,7 +54,7 @@ fn main() {
         .into_iter()
         .for_each(|id| world.run_system(id).unwrap());
 
-    assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::B)>>().get_single(&world).is_ok());
+    assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::B)>>().single(&world).is_ok());
 
     // overwrite TestEnum by other type
     world.entity_mut(entity).insert(TestEnum::C);
@@ -62,16 +62,16 @@ fn main() {
         .into_iter()
         .for_each(|id| world.run_system(id).unwrap());
 
-    assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::B)>>().get_single(&world).is_err());
-    assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::C)>>().get_single(&world).is_ok());
+    assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::B)>>().single(&world).is_err());
+    assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::C)>>().single(&world).is_ok());
 
     // use markers directly
     {
         // EnumFilter proc macro generate a mod
         use test_enum_filters::C;
 
-        assert!(world.query_filtered::<Entity, With<test_enum_filters::B>>().get_single(&world).is_err());
-        assert!(world.query_filtered::<Entity, Added<C>>().get_single(&world).is_ok());
+        assert!(world.query_filtered::<Entity, With<test_enum_filters::B>>().single(&world).is_err());
+        assert!(world.query_filtered::<Entity, Added<C>>().single(&world).is_ok());
     }
 }
 ```
@@ -80,4 +80,5 @@ fn main() {
 
 | bevy   | bevy_ecs_enum_filter |
 | :----- | -------------------- |
-| 0.15.x | 0.1.0 (main)         |
+| 0.16.x | 0.16 (main)          |
+| 0.15.x | 0.1.0                |
