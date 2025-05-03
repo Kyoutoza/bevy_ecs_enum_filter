@@ -3,7 +3,6 @@ use crate::filter_trait::EnumFilter;
 use bevy::prelude::{App, PostStartup, Update};
 #[cfg(feature = "app")]
 use bevy_app::{App, PostStartup, Update};
-use bevy_ecs::schedule::IntoSystemConfigs;
 
 /// Extension trait for [`App`] that enables adding an [enum filter].
 ///
