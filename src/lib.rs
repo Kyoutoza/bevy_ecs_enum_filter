@@ -27,31 +27,6 @@ mod tests {
         type Mutability = bevy_ecs::component::Mutable;
         fn register_component_hooks(hooks: &mut bevy_ecs::component::ComponentHooks) {
             hooks
-                .on_add(|mut world, ctx| {
-                    println!("on_add");
-                    let enum_comp = world.get::<TestEnum>(ctx.entity).unwrap().clone();
-                    let mut cmd = world.commands();
-                    cmd.queue(move |world: &mut World| {
-                        let mut entity_mut = world.entity_mut(ctx.entity);
-                        match enum_comp {
-                            TestEnum::A => {
-                                if !entity_mut.contains::<test_enum_filters::A>() {
-                                    entity_mut.insert(test_enum_filters::A);
-                                }
-                            }
-                            TestEnum::B => {
-                                if !entity_mut.contains::<test_enum_filters::B>() {
-                                    entity_mut.insert(test_enum_filters::B);
-                                }
-                            }
-                            TestEnum::C => {
-                                if !entity_mut.contains::<test_enum_filters::C>() {
-                                    entity_mut.insert(test_enum_filters::C);
-                                }
-                            }
-                        }
-                    });
-                })
                 .on_insert(|mut world, ctx| {
                     println!("on_insert");
                     let enum_comp = world.get::<TestEnum>(ctx.entity).unwrap().clone();
@@ -59,22 +34,10 @@ mod tests {
                     cmd.queue(move |world: &mut World| {
                         let mut entity_mut = world.entity_mut(ctx.entity);
                         match enum_comp {
-                            TestEnum::A => {
-                                if !entity_mut.contains::<test_enum_filters::A>() {
-                                    entity_mut.insert(test_enum_filters::A);
-                                }
-                            }
-                            TestEnum::B => {
-                                if !entity_mut.contains::<test_enum_filters::B>() {
-                                    entity_mut.insert(test_enum_filters::B);
-                                }
-                            }
-                            TestEnum::C => {
-                                if !entity_mut.contains::<test_enum_filters::C>() {
-                                    entity_mut.insert(test_enum_filters::C);
-                                }
-                            }
-                        }
+                            TestEnum::A => entity_mut.insert(test_enum_filters::A),
+                            TestEnum::B => entity_mut.insert(test_enum_filters::B),
+                            TestEnum::C => entity_mut.insert(test_enum_filters::C),
+                        };
                     })
                 })
                 .on_replace(|mut world, ctx| {
@@ -160,10 +123,12 @@ mod tests {
         world.entity_mut(entity).remove::<TestEnum>();
 
         assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::A)>>().single(&world).is_err());
-        assert!(world
-            .query_filtered::<Entity, Without<Enum!(TestEnum::A)>>()
-            .iter(&world)
-            .any(|target| target == entity));
+        assert!(
+            world
+                .query_filtered::<Entity, Without<Enum!(TestEnum::A)>>()
+                .iter(&world)
+                .any(|target| target == entity)
+        );
         assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::A)>>().single(&world).is_err());
 
         world.entity_mut(entity).insert(TestEnum::B);
