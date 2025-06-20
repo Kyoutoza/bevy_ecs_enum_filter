@@ -74,7 +74,33 @@ pub fn derive_enum_filter(item: TokenStream) -> TokenStream {
 
     let (impl_generics, ty_generics, where_clause) = &input.generics.split_for_impl();
 
+    let inner_insert = variants.iter().fold(vec![], |mut list, variant| {
+        list.push(quote! {
+            #ident::#variant => entity_mut.insert(#mod_ident::#variant)
+        });
+
+        list
+    });
+
     TokenStream::from(quote! {
+        impl #impl_generics #bevy::component::Component for #ident #ty_generics #where_clause {
+            const STORAGE_TYPE: #bevy::component::StorageType = bevy_ecs::component::StorageType::Table;
+            type Mutability = #bevy::component::Mutable;
+
+            fn register_component_hooks(hooks: &mut #bevy::component::ComponentHooks) {
+                hooks
+                    .on_insert(|mut world, ctx| {
+                        let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        cmd.queue(move |world: &mut #bevy::prelude::World| {
+                            let mut entity_mut = world.entity_mut(ctx.entity);
+                            match enum_comp {
+                                #(#inner_insert),*
+                            };
+                        })
+                    });
+                }
+        }
         impl #impl_generics #bevy_ecs_enum_filter::EnumFilter for #ident #ty_generics #where_clause {}
 
         #[doc = #mod_doc]

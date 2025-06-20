@@ -9,7 +9,15 @@ pub mod prelude {
 }
 
 /// A trait used to denote an enum as "filterable".
-pub trait EnumFilter: Component {}
+pub trait EnumFilter: Clone + Component {}
+
+#[allow(unused)]
+#[derive(Clone, EnumFilter)]
+enum Sample {
+    A,
+    B,
+    C,
+}
 
 #[cfg(test)]
 mod tests {
@@ -28,7 +36,6 @@ mod tests {
         fn register_component_hooks(hooks: &mut bevy_ecs::component::ComponentHooks) {
             hooks
                 .on_insert(|mut world, ctx| {
-                    println!("on_insert");
                     let enum_comp = world.get::<TestEnum>(ctx.entity).unwrap().clone();
                     let mut cmd = world.commands();
                     cmd.queue(move |world: &mut World| {
@@ -41,7 +48,6 @@ mod tests {
                     })
                 })
                 .on_replace(|mut world, ctx| {
-                    println!("on_replace");
                     let enum_comp = world.get::<TestEnum>(ctx.entity).unwrap().clone();
                     let mut cmd = world.commands();
                     let mut cmd = cmd.entity(ctx.entity);
@@ -52,7 +58,6 @@ mod tests {
                     };
                 })
                 .on_remove(|mut world, ctx| {
-                    println!("on_remove");
                     let enum_comp = world.get::<TestEnum>(ctx.entity).unwrap().clone();
                     let mut cmd = world.commands();
                     let mut cmd = cmd.entity(ctx.entity);
