@@ -82,6 +82,14 @@ pub fn derive_enum_filter(item: TokenStream) -> TokenStream {
         list
     });
 
+    let inner_remove = variants.iter().fold(vec![], |mut list, variant| {
+        list.push(quote! {
+            #ident::#variant => cmd.remove::<#mod_ident::#variant>()
+        });
+
+        list
+    });
+
     TokenStream::from(quote! {
         impl #impl_generics #bevy::component::Component for #ident #ty_generics #where_clause {
             const STORAGE_TYPE: #bevy::component::StorageType = bevy_ecs::component::StorageType::Table;
@@ -98,6 +106,22 @@ pub fn derive_enum_filter(item: TokenStream) -> TokenStream {
                                 #(#inner_insert),*
                             };
                         })
+                    })
+                    .on_replace(|mut world, ctx| {
+                        let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        let mut cmd = cmd.entity(ctx.entity);
+                        match enum_comp {
+                            #(#inner_remove),*
+                        };
+                    })
+                    .on_remove(|mut world, ctx| {
+                        let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        let mut cmd = cmd.entity(ctx.entity);
+                        match enum_comp {
+                            #(#inner_remove),*
+                        };
                     });
                 }
         }

@@ -30,45 +30,6 @@ mod tests {
         B,
         C,
     }
-    impl bevy_ecs::component::Component for TestEnum {
-        const STORAGE_TYPE: bevy_ecs::component::StorageType = bevy_ecs::component::StorageType::Table;
-        type Mutability = bevy_ecs::component::Mutable;
-        fn register_component_hooks(hooks: &mut bevy_ecs::component::ComponentHooks) {
-            hooks
-                .on_insert(|mut world, ctx| {
-                    let enum_comp = world.get::<TestEnum>(ctx.entity).unwrap().clone();
-                    let mut cmd = world.commands();
-                    cmd.queue(move |world: &mut World| {
-                        let mut entity_mut = world.entity_mut(ctx.entity);
-                        match enum_comp {
-                            TestEnum::A => entity_mut.insert(test_enum_filters::A),
-                            TestEnum::B => entity_mut.insert(test_enum_filters::B),
-                            TestEnum::C => entity_mut.insert(test_enum_filters::C),
-                        };
-                    })
-                })
-                .on_replace(|mut world, ctx| {
-                    let enum_comp = world.get::<TestEnum>(ctx.entity).unwrap().clone();
-                    let mut cmd = world.commands();
-                    let mut cmd = cmd.entity(ctx.entity);
-                    match enum_comp {
-                        TestEnum::A => cmd.remove::<test_enum_filters::A>(),
-                        TestEnum::B => cmd.remove::<test_enum_filters::B>(),
-                        TestEnum::C => cmd.remove::<test_enum_filters::C>(),
-                    };
-                })
-                .on_remove(|mut world, ctx| {
-                    let enum_comp = world.get::<TestEnum>(ctx.entity).unwrap().clone();
-                    let mut cmd = world.commands();
-                    let mut cmd = cmd.entity(ctx.entity);
-                    match enum_comp {
-                        TestEnum::A => cmd.remove::<test_enum_filters::A>(),
-                        TestEnum::B => cmd.remove::<test_enum_filters::B>(),
-                        TestEnum::C => cmd.remove::<test_enum_filters::C>(),
-                    };
-                });
-        }
-    }
 
     #[test]
     fn test_observer() {
