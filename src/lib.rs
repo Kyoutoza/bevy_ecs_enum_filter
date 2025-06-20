@@ -1,6 +1,5 @@
 #![doc = include_str!("../README.md")]
 
-use bevy_ecs::prelude::Component;
 pub use bevy_ecs_enum_filter_derive::{Enum, EnumFilter};
 
 pub mod prelude {
@@ -9,7 +8,10 @@ pub mod prelude {
 }
 
 /// A trait used to denote an enum as "filterable".
-pub trait EnumFilter: Clone + Component {}
+#[cfg(not(feature = "bevy"))]
+pub trait EnumFilter: Clone + bevy_ecs::prelude::Component {}
+#[cfg(feature = "bevy")]
+pub trait EnumFilter: Clone + bevy_ecs::component::Component {}
 
 #[allow(unused)]
 #[derive(Clone, EnumFilter)]
@@ -22,6 +24,9 @@ enum Sample {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(feature = "bevy")]
+    use bevy::prelude::*;
+    #[cfg(not(feature = "bevy"))]
     use bevy_ecs::prelude::*;
 
     #[derive(Clone, Debug, EnumFilter)]
@@ -30,11 +35,10 @@ mod tests {
         B,
         C,
     }
+    use test_enum_filters::*;
 
     #[test]
     fn test_observer() {
-        use test_enum_filters::*;
-
         #[derive(Event)]
         struct TriTest;
 
@@ -61,8 +65,6 @@ mod tests {
 
     #[test]
     fn test_abbr() {
-        use test_enum_filters::*;
-
         let mut world = World::new();
         let entity = world.spawn(TestEnum::A).id();
 

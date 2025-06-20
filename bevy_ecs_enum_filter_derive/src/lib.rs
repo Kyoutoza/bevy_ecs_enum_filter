@@ -90,41 +90,87 @@ pub fn derive_enum_filter(item: TokenStream) -> TokenStream {
         list
     });
 
-    TokenStream::from(quote! {
-        impl #impl_generics #bevy::component::Component for #ident #ty_generics #where_clause {
-            const STORAGE_TYPE: #bevy::component::StorageType = bevy_ecs::component::StorageType::Table;
-            type Mutability = #bevy::component::Mutable;
+    #[cfg(not(feature = "bevy"))]
+    let impl_component = {
+        quote! {
+            impl #impl_generics #bevy::component::Component for #ident #ty_generics #where_clause {
+                const STORAGE_TYPE: #bevy::component::StorageType = #bevy::component::StorageType::Table;
+                type Mutability = #bevy::component::Mutable;
 
-            fn register_component_hooks(hooks: &mut #bevy::component::ComponentHooks) {
-                hooks
-                    .on_insert(|mut world, ctx| {
-                        let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                        let mut cmd = world.commands();
-                        cmd.queue(move |world: &mut #bevy::prelude::World| {
-                            let mut entity_mut = world.entity_mut(ctx.entity);
+                fn register_component_hooks(hooks: &mut #bevy::component::ComponentHooks) {
+                    hooks
+                        .on_insert(|mut world, ctx| {
+                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
+                            let mut cmd = world.commands();
+                            cmd.queue(move |world: &mut #bevy::prelude::World| {
+                                let mut entity_mut = world.entity_mut(ctx.entity);
+                                match enum_comp {
+                                    #(#inner_insert),*
+                                };
+                            })
+                        })
+                        .on_replace(|mut world, ctx| {
+                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
+                            let mut cmd = world.commands();
+                            let mut cmd = cmd.entity(ctx.entity);
                             match enum_comp {
-                                #(#inner_insert),*
+                                #(#inner_remove),*
                             };
                         })
-                    })
-                    .on_replace(|mut world, ctx| {
-                        let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                        let mut cmd = world.commands();
-                        let mut cmd = cmd.entity(ctx.entity);
-                        match enum_comp {
-                            #(#inner_remove),*
-                        };
-                    })
-                    .on_remove(|mut world, ctx| {
-                        let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                        let mut cmd = world.commands();
-                        let mut cmd = cmd.entity(ctx.entity);
-                        match enum_comp {
-                            #(#inner_remove),*
-                        };
-                    });
+                        .on_remove(|mut world, ctx| {
+                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
+                            let mut cmd = world.commands();
+                            let mut cmd = cmd.entity(ctx.entity);
+                            match enum_comp {
+                                #(#inner_remove),*
+                            };
+                        });
                 }
+            }
         }
+    };
+    #[cfg(feature = "bevy")]
+    let impl_component = {
+        quote! {
+            impl #impl_generics #bevy::ecs::component::Component for #ident #ty_generics #where_clause {
+                const STORAGE_TYPE: #bevy::ecs::component::StorageType = #bevy::ecs::component::StorageType::Table;
+                type Mutability = #bevy::ecs::component::Mutable;
+
+                fn register_component_hooks(hooks: &mut #bevy::ecs::component::ComponentHooks) {
+                    hooks
+                        .on_insert(|mut world, ctx| {
+                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
+                            let mut cmd = world.commands();
+                            cmd.queue(move |world: &mut #bevy::prelude::World| {
+                                let mut entity_mut = world.entity_mut(ctx.entity);
+                                match enum_comp {
+                                    #(#inner_insert),*
+                                };
+                            })
+                        })
+                        .on_replace(|mut world, ctx| {
+                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
+                            let mut cmd = world.commands();
+                            let mut cmd = cmd.entity(ctx.entity);
+                            match enum_comp {
+                                #(#inner_remove),*
+                            };
+                        })
+                        .on_remove(|mut world, ctx| {
+                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
+                            let mut cmd = world.commands();
+                            let mut cmd = cmd.entity(ctx.entity);
+                            match enum_comp {
+                                #(#inner_remove),*
+                            };
+                        });
+                }
+            }
+        }
+    };
+
+    TokenStream::from(quote! {
+        #impl_component
         impl #impl_generics #bevy_ecs_enum_filter::EnumFilter for #ident #ty_generics #where_clause {}
 
         #[doc = #mod_doc]

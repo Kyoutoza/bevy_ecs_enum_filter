@@ -7,7 +7,6 @@ edition = "2021"
 proc-macro = true
 
 [features]
-app = []
 bevy = []
 
 [dependencies]
