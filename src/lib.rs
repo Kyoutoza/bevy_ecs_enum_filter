@@ -37,11 +37,118 @@ mod tests {
     use crate::prelude::*;
     use bevy_ecs::prelude::*;
 
-    #[derive(Component, Debug, EnumFilter)]
+    #[derive(Clone, Debug, EnumFilter)]
     enum TestEnum {
         A,
         B,
         C,
+    }
+    impl bevy_ecs::component::Component for TestEnum {
+        const STORAGE_TYPE: bevy_ecs::component::StorageType = bevy_ecs::component::StorageType::Table;
+        type Mutability = bevy_ecs::component::Mutable;
+        fn register_component_hooks(hooks: &mut bevy_ecs::component::ComponentHooks) {
+            hooks
+                .on_add(|mut world, ctx| {
+                    println!("on_add");
+                    let enum_comp = world.get::<TestEnum>(ctx.entity).unwrap().clone();
+                    let mut cmd = world.commands();
+                    cmd.queue(move |world: &mut World| {
+                        let mut entity_mut = world.entity_mut(ctx.entity);
+                        match enum_comp {
+                            TestEnum::A => {
+                                if !entity_mut.contains::<test_enum_filters::A>() {
+                                    entity_mut.insert(test_enum_filters::A);
+                                }
+                            }
+                            TestEnum::B => {
+                                if !entity_mut.contains::<test_enum_filters::B>() {
+                                    entity_mut.insert(test_enum_filters::B);
+                                }
+                            }
+                            TestEnum::C => {
+                                if !entity_mut.contains::<test_enum_filters::C>() {
+                                    entity_mut.insert(test_enum_filters::C);
+                                }
+                            }
+                        }
+                    });
+                })
+                .on_insert(|mut world, ctx| {
+                    println!("on_insert");
+                    let enum_comp = world.get::<TestEnum>(ctx.entity).unwrap().clone();
+                    let mut cmd = world.commands();
+                    cmd.queue(move |world: &mut World| {
+                        let mut entity_mut = world.entity_mut(ctx.entity);
+                        match enum_comp {
+                            TestEnum::A => {
+                                if !entity_mut.contains::<test_enum_filters::A>() {
+                                    entity_mut.insert(test_enum_filters::A);
+                                }
+                            }
+                            TestEnum::B => {
+                                if !entity_mut.contains::<test_enum_filters::B>() {
+                                    entity_mut.insert(test_enum_filters::B);
+                                }
+                            }
+                            TestEnum::C => {
+                                if !entity_mut.contains::<test_enum_filters::C>() {
+                                    entity_mut.insert(test_enum_filters::C);
+                                }
+                            }
+                        }
+                    })
+                })
+                .on_replace(|mut world, ctx| {
+                    println!("on_replace");
+                    let enum_comp = world.get::<TestEnum>(ctx.entity).unwrap().clone();
+                    let mut cmd = world.commands();
+                    let mut cmd = cmd.entity(ctx.entity);
+                    match enum_comp {
+                        TestEnum::A => cmd.remove::<test_enum_filters::A>(),
+                        TestEnum::B => cmd.remove::<test_enum_filters::B>(),
+                        TestEnum::C => cmd.remove::<test_enum_filters::C>(),
+                    };
+                })
+                .on_remove(|mut world, ctx| {
+                    println!("on_remove");
+                    let enum_comp = world.get::<TestEnum>(ctx.entity).unwrap().clone();
+                    let mut cmd = world.commands();
+                    let mut cmd = cmd.entity(ctx.entity);
+                    match enum_comp {
+                        TestEnum::A => cmd.remove::<test_enum_filters::A>(),
+                        TestEnum::B => cmd.remove::<test_enum_filters::B>(),
+                        TestEnum::C => cmd.remove::<test_enum_filters::C>(),
+                    };
+                });
+        }
+    }
+
+    #[test]
+    fn test_observer() {
+        use test_enum_filters::*;
+
+        #[derive(Event)]
+        struct TriTest;
+
+        fn on_test(tri: Trigger<TriTest>, q: Query<Entity, With<Enum!(TestEnum::B)>>) {
+            assert!(q.get(tri.target()).is_ok());
+        }
+
+        fn sys_trigger(mut cmd: Commands, q: Query<Entity>) {
+            let entity = q.iter().last().unwrap();
+            cmd.entity(entity).insert(TestEnum::B).trigger(TriTest);
+        }
+
+        let mut world = World::new();
+        world.add_observer(on_test);
+
+        let update_systems = [world.register_system(sys_trigger)];
+
+        world.spawn_empty();
+
+        update_systems.into_iter().for_each(|id| world.run_system(id).unwrap());
+
+        assert!(world.query_filtered::<Entity, With<B>>().single(&world).is_ok());
     }
 
     #[test]
