@@ -156,23 +156,13 @@ mod tests {
         use test_enum_filters::*;
 
         let mut world = World::new();
-        let update_systems = [
-            world.register_system(EnumFilterSystems::remove_marker_for_enum::<TestEnum>),
-            world.register_system(EnumFilterSystems::watch_for_enum::<TestEnum>),
-        ];
-
         let entity = world.spawn(TestEnum::A).id();
-
-        update_systems.into_iter().for_each(|id| world.run_system(id).unwrap());
 
         assert!(world.query_filtered::<Entity, With<A>>().single(&world).is_ok());
         assert!(world.query_filtered::<Entity, Added<A>>().single(&world).is_ok());
         assert!(world.query_filtered::<Entity, Added<B>>().single(&world).is_err());
 
         world.entity_mut(entity).remove::<TestEnum>();
-        update_systems
-            .into_iter()
-            .for_each(|id| world.run_system(id).unwrap_or_else(|e| panic!("{e}")));
 
         assert!(world.query_filtered::<Entity, With<A>>().single(&world).is_err());
         assert!(world.query_filtered::<Entity, Without<A>>().iter(&world).any(|target| target == entity));
@@ -182,24 +172,13 @@ mod tests {
     #[test]
     fn test_filter() {
         let mut world = World::new();
-        let update_systems = [
-            // remove_marker_for_enum should be run before watch_for_enum
-            world.register_system(EnumFilterSystems::remove_marker_for_enum::<TestEnum>),
-            world.register_system(EnumFilterSystems::watch_for_enum::<TestEnum>),
-        ];
-
         let entity = world.spawn(TestEnum::A).id();
-
-        update_systems.into_iter().for_each(|id| world.run_system(id).unwrap());
 
         assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::A)>>().single(&world).is_ok());
         assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::A)>>().single(&world).is_ok());
         assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::B)>>().single(&world).is_err());
 
         world.entity_mut(entity).remove::<TestEnum>();
-        update_systems
-            .into_iter()
-            .for_each(|id| world.run_system(id).unwrap_or_else(|e| panic!("{e}")));
 
         assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::A)>>().single(&world).is_err());
         assert!(world
@@ -209,51 +188,15 @@ mod tests {
         assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::A)>>().single(&world).is_err());
 
         world.entity_mut(entity).insert(TestEnum::B);
-        update_systems
-            .into_iter()
-            .for_each(|id| world.run_system(id).unwrap_or_else(|e| panic!("{e}")));
 
         assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::A)>>().single(&world).is_err());
         assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::B)>>().single(&world).is_ok());
 
         world.entity_mut(entity).insert(TestEnum::C);
-        update_systems
-            .into_iter()
-            .for_each(|id| world.run_system(id).unwrap_or_else(|e| panic!("{e}")));
 
         assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::B)>>().iter(&world).len() == 0);
         assert!(world.query_filtered::<Entity, Changed<Enum!(TestEnum::A)>>().single(&world).is_err());
         assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::C)>>().single(&world).is_ok());
         assert!(world.query_filtered::<Entity, Changed<Enum!(TestEnum::C)>>().single(&world).is_ok());
-    }
-
-    #[test]
-    fn test_order() {
-        let mut world = World::new();
-        let reserved_update_systems = [
-            // switched watch_for_enum and remove_marker_for_enum order
-            world.register_system(EnumFilterSystems::watch_for_enum::<TestEnum>),
-            world.register_system(EnumFilterSystems::remove_marker_for_enum::<TestEnum>),
-        ];
-
-        let entity = world.spawn(TestEnum::A).id();
-
-        [world.register_system(EnumFilterSystems::create_marker_for_enum::<TestEnum>)]
-            .into_iter()
-            .for_each(|id| world.run_system(id).unwrap_or_else(|e| panic!("{e}")));
-
-        world.entity_mut(entity).remove::<TestEnum>();
-        world.entity_mut(entity).insert(TestEnum::C);
-        reserved_update_systems
-            .into_iter()
-            .for_each(|id| world.run_system(id).unwrap_or_else(|e| panic!("{e}")));
-
-        assert!(world.query_filtered::<Entity, Changed<Enum!(TestEnum::B)>>().single(&world).is_err());
-        assert!(world.query_filtered::<Entity, Changed<Enum!(TestEnum::A)>>().single(&world).is_err());
-
-        // failed!
-        assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::C)>>().single(&world).is_err());
-        // failed!
-        assert!(world.query_filtered::<Entity, Changed<Enum!(TestEnum::C)>>().single(&world).is_err());
     }
 }
