@@ -1,8 +1,8 @@
 [package]
 name = "bevy_ecs_enum_filter"
-version = "0.16.1"
-edition = "2021"
-description = "cloned https://github.com/mikkelens/bevy_enum_filter forked https://github.com/MrGVSV/bevy_enum_filter then edited"
+version = "0.16.2"
+edition = "2024"
+description = "cloned https://github.com/mikkelens/bevy_enum_filter forked https://github.com/MrGVSV/bevy_enum_filter and edited"
 
 [features]
 # use bevy crate instead of bevy_ecs crate
