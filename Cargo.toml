@@ -5,24 +5,16 @@ edition = "2021"
 description = "cloned https://github.com/mikkelens/bevy_enum_filter forked https://github.com/MrGVSV/bevy_enum_filter then edited"
 
 [features]
-# use bevy_app crate with bevy_ecs crate
-app = ["bevy_ecs_enum_filter_derive/app", "bevy_app"]
-
 # use bevy crate instead of bevy_ecs crate
 bevy = ["dep:bevy", "bevy_ecs_enum_filter_derive/bevy"]
 
-# macro_export for register_enum_filter_systems for non app feature
-macro = []
-
 [dependencies]
 bevy = { version = "0.16", default-features = false, optional = true }
-bevy_app = { version = "0.16", default-features = false, optional = true }
 bevy_ecs = { version = "0.16", default-features = false }
 bevy_ecs_enum_filter_derive = { path = "./bevy_ecs_enum_filter_derive" }
 
 [dev-dependencies]
 bevy = { version = "0.16", default-features = false }
-bevy_app = { version = "0.16", default-features = false }
 
 [[example]]
 name = "schedule"

@@ -1,40 +1,19 @@
 #![doc = include_str!("../README.md")]
 
-#[cfg(feature = "app")]
-mod extensions;
-#[cfg(feature = "bevy")]
-mod extensions;
-mod filter_trait;
-mod systems;
-
+use bevy_ecs::prelude::Component;
 pub use bevy_ecs_enum_filter_derive::{Enum, EnumFilter};
-pub use filter_trait::EnumFilter;
 
 pub mod prelude {
-    pub use super::filter_trait::EnumFilter;
-    #[cfg(feature = "bevy")]
-    pub use crate::extensions::AddEnumFilter;
-    #[cfg(feature = "app")]
-    pub use crate::extensions::AddEnumFilter;
-    #[cfg(feature = "macro")]
-    pub use crate::register_enum_filter_systems;
-    pub use crate::systems::EnumFilterSystems;
-    pub use bevy_ecs_enum_filter_derive::{Enum, EnumFilter};
+    pub use crate::EnumFilter;
+    pub use bevy_ecs_enum_filter_derive::Enum;
 }
 
-#[cfg(feature = "macro")]
-/// instant registration
-#[macro_export]
-macro_rules! register_enum_filter_systems {
-    ($ty:ty) => {
-        (EnumFilterSystems::remove_marker_for_enum::<$ty>, EnumFilterSystems::watch_for_enum::<$ty>).chain()
-    };
-}
+/// A trait used to denote an enum as "filterable".
+pub trait EnumFilter: Component {}
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prelude::*;
     use bevy_ecs::prelude::*;
 
     #[derive(Clone, Debug, EnumFilter)]
