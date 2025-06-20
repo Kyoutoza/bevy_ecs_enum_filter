@@ -3,12 +3,12 @@
 Cloned [forked](https://github.com/mikkelens/bevy_enum_filter) from [bevy_enum_filter](https://github.com/MrGVSV/bevy_enum_filter) by [MrGVSV](https://github.com/MrGVSV) and edited.
 
 Since bevy_ecs_enum_filter version 0.16.2,  
-Enum marker check by systems were abolished.
+Enum marker check by systems were abolished.  
 Instead, ComponentHooks is used for it.
 
 The license complies with the original crate.
 
-# with only bevy_ecs crate 
+# using with only bevy_ecs crate 
 ```toml
 [dependencies]
 bevy_ecs_enum_filter = {git = "https://github.com/Kyoutoza/bevy_ecs_enum_filter"}
@@ -19,7 +19,7 @@ use bevy_ecs_enum_filter::prelude::*;
 use bevy_ecs::prelude::*;
 
 fn main() {
-    // required Clone
+    // Clone is required
     // Component is unnecessary
     #[derive(Clone, Debug, EnumFilter)]
     enum TestEnum {
@@ -53,7 +53,7 @@ fn main() {
 }
 ```
 
-# with only bevy crate 
+# using bevy crate 
 ```toml
 [dependencies]
 bevy_ecs_enum_filter = {git = "https://github.com/Kyoutoza/bevy_ecs_enum_filter", default-features = false, features = ["bevy"]}
@@ -63,5 +63,5 @@ bevy_ecs_enum_filter = {git = "https://github.com/Kyoutoza/bevy_ecs_enum_filter"
 
 | bevy   | bevy_ecs_enum_filter |
 | :----- | -------------------- |
-| 0.16.x | 0.16 (main)          |
+| 0.16.x | 0.16.2 (main)          |
 | 0.15.x | 0.1.0                |
