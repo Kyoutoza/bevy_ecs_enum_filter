@@ -74,17 +74,19 @@ pub fn derive_enum_filter(item: TokenStream) -> TokenStream {
 
     let (impl_generics, ty_generics, where_clause) = &input.generics.split_for_impl();
 
-    let inner_insert = variants.iter().fold(vec![], |mut list, variant| {
+    let inner_insert = data.variants.iter().fold(vec![], |mut list, variant| {
+        let head = &variant.ident;
         list.push(quote! {
-            #ident::#variant => entity_mut.insert(#mod_ident::#variant)
+            #ident::#variant => entity_mut.insert(#mod_ident::#head)
         });
 
         list
     });
 
-    let inner_remove = variants.iter().fold(vec![], |mut list, variant| {
+    let inner_remove = data.variants.iter().fold(vec![], |mut list, variant| {
+        let head = &variant.ident;
         list.push(quote! {
-            #ident::#variant => cmd.remove::<#mod_ident::#variant>()
+            #ident::#variant => cmd.remove::<#mod_ident::#head>()
         });
 
         list
@@ -97,6 +99,7 @@ pub fn derive_enum_filter(item: TokenStream) -> TokenStream {
                 const STORAGE_TYPE: #bevy::component::StorageType = #bevy::component::StorageType::Table;
                 type Mutability = #bevy::component::Mutable;
 
+                #[allow(unused)]
                 fn register_component_hooks(hooks: &mut #bevy::component::ComponentHooks) {
                     hooks
                         .on_insert(|mut world, ctx| {
@@ -136,6 +139,7 @@ pub fn derive_enum_filter(item: TokenStream) -> TokenStream {
                 const STORAGE_TYPE: #bevy::ecs::component::StorageType = #bevy::ecs::component::StorageType::Table;
                 type Mutability = #bevy::ecs::component::Mutable;
 
+                #[allow(unused)]
                 fn register_component_hooks(hooks: &mut #bevy::ecs::component::ComponentHooks) {
                     hooks
                         .on_insert(|mut world, ctx| {
