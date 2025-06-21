@@ -63,5 +63,5 @@ bevy_ecs_enum_filter = {git = "https://github.com/Kyoutoza/bevy_ecs_enum_filter"
 
 | bevy   | bevy_ecs_enum_filter |
 | :----- | -------------------- |
-| 0.16.x | 0.16.2 (main)          |
+| 0.16.x | 0.16.3 (main)          |
 | 0.15.x | 0.1.0                |

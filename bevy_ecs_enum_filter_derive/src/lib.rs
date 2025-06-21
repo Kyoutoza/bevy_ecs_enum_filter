@@ -76,9 +76,16 @@ pub fn derive_enum_filter(item: TokenStream) -> TokenStream {
 
     let inner_insert = data.variants.iter().fold(vec![], |mut list, variant| {
         let head = &variant.ident;
-        let fields = &variant.fields;
-        list.push(quote! {
-            #ident::#head #fields => entity_mut.insert(#mod_ident::#head)
+        list.push(match variant.fields {
+            syn::Fields::Named(_) => quote! {
+                #ident::#head {..} => entity_mut.insert(#mod_ident::#head)
+            },
+            syn::Fields::Unnamed(_) => quote! {
+                #ident::#head (_) => entity_mut.insert(#mod_ident::#head)
+            },
+            syn::Fields::Unit => quote! {
+                #ident::#head => entity_mut.insert(#mod_ident::#head)
+            },
         });
 
         list
@@ -86,9 +93,16 @@ pub fn derive_enum_filter(item: TokenStream) -> TokenStream {
 
     let inner_remove = data.variants.iter().fold(vec![], |mut list, variant| {
         let head = &variant.ident;
-        let fields = &variant.fields;
-        list.push(quote! {
-            #ident::#head #fields => cmd.remove::<#mod_ident::#head>()
+        list.push(match variant.fields {
+            syn::Fields::Named(_) => quote! {
+                #ident::#head {..} => cmd.remove::<#mod_ident::#head>()
+            },
+            syn::Fields::Unnamed(_) => quote! {
+                #ident::#head (_) => cmd.remove::<#mod_ident::#head>()
+            },
+            syn::Fields::Unit => quote! {
+                #ident::#head => cmd.remove::<#mod_ident::#head>()
+            },
         });
 
         list
