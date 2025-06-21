@@ -76,8 +76,9 @@ pub fn derive_enum_filter(item: TokenStream) -> TokenStream {
 
     let inner_insert = data.variants.iter().fold(vec![], |mut list, variant| {
         let head = &variant.ident;
+        let fields = &variant.fields;
         list.push(quote! {
-            #ident::#variant => entity_mut.insert(#mod_ident::#head)
+            #ident::#head #fields => entity_mut.insert(#mod_ident::#head)
         });
 
         list
@@ -85,8 +86,9 @@ pub fn derive_enum_filter(item: TokenStream) -> TokenStream {
 
     let inner_remove = data.variants.iter().fold(vec![], |mut list, variant| {
         let head = &variant.ident;
+        let fields = &variant.fields;
         list.push(quote! {
-            #ident::#variant => cmd.remove::<#mod_ident::#head>()
+            #ident::#head #fields => cmd.remove::<#mod_ident::#head>()
         });
 
         list

@@ -21,11 +21,14 @@ mod tests {
     #[cfg(not(feature = "bevy"))]
     use bevy_ecs::prelude::*;
 
-    #[allow(unused_variables)]
-    #[derive(Clone, Debug, EnumFilter)]
+    #[allow(unused)]
+    #[derive(Clone, Debug, Default, EnumFilter)]
     enum TestEnum {
+        #[default]
         A,
-        B { v: f64 },
+        B {
+            v: f64,
+        },
         C(i32),
     }
     use test_enum_filters::*;
