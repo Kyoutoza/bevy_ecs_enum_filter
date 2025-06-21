@@ -26,7 +26,7 @@ fn main() {
     // Component is unnecessary
     #[derive(Clone, Debug, EnumComponent)]
     enum TestEnum {
-         A,
+        A,
         B {
             v: f64,
         },
@@ -61,7 +61,9 @@ fn main() {
 ## using bevy crate 
 ```toml
 [dependencies]
-bevy_ecs_enum_filter = { git = "https://github.com/Kyoutoza/bevy_ecs_enum_filter", branch = "0.16", features = ["bevy"]}
+bevy_ecs_enum_filter = { git = "https://github.com/Kyoutoza/bevy_ecs_enum_filter", branch = "0.16", features = [
+  "bevy",
+] }
 ```
 
 ## Bevy Compatibility
