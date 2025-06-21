@@ -254,28 +254,3 @@ fn get_crate(name: &str) -> proc_macro2::TokenStream {
         }
     }
 }
-
-/*
-       impl #impl_generics #bevy_ecs_enum_filter::EnumFilter for #ident #ty_generics #where_clause {
-           fn set_marker(cmd: &mut #bevy::prelude::EntityCommands, value: &Self) {
-               #(if matches!(value, #ident::#variants{..}) {
-                   let entity = cmd.id();
-                   let mut commands = cmd.commands();
-
-                   commands.queue(move |world: &mut #bevy::prelude::World| {
-                       let mut entity_mut = world.entity_mut(entity);
-                       if !entity_mut.contains::<#mod_ident::#variants>() {
-                           // Only insert the marker if it doesn't already exist
-                           entity_mut.insert(#mod_ident::#variants);
-                       }
-                   });
-               } else {
-                   cmd.remove::<#mod_ident::#variants>();
-               })*
-           }
-
-           fn remove_marker(cmd: &mut #bevy::prelude::EntityCommands) {
-               #(cmd.remove::<#mod_ident::#variants>();)*
-           }
-       }
-*/

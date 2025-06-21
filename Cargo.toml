@@ -6,7 +6,7 @@ description = "cloned https://github.com/mikkelens/bevy_enum_filter forked https
 
 [features]
 # use bevy_ecs crate without bevy crate
-default = ["bevy_ecs"]
+default = ["dep:bevy_ecs"]
 
 # use bevy crate instead of bevy_ecs crate
 bevy = ["dep:bevy", "bevy_ecs_enum_filter_derive/bevy"]
