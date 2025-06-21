@@ -13,14 +13,6 @@ pub trait EnumFilter: Clone + bevy_ecs::prelude::Component {}
 #[cfg(feature = "bevy")]
 pub trait EnumFilter: Clone + bevy::prelude::Component {}
 
-#[allow(unused)]
-#[derive(Clone, EnumFilter)]
-enum Sample {
-    A,
-    B,
-    C,
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
