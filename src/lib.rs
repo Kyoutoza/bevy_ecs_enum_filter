@@ -1,17 +1,17 @@
 #![doc = include_str!("../README.md")]
 
-pub use bevy_ecs_enum_filter_derive::{Enum, EnumFilter};
+pub use bevy_ecs_enum_filter_derive::{Enum, EnumComponent};
 
 pub mod prelude {
-    pub use crate::EnumFilter;
+    pub use crate::EnumComponent;
     pub use bevy_ecs_enum_filter_derive::Enum;
 }
 
 /// A trait used to denote an enum as "filterable".
 #[cfg(not(feature = "bevy"))]
-pub trait EnumFilter: Clone + bevy_ecs::prelude::Component {}
+pub trait EnumComponent: Clone + bevy_ecs::prelude::Component {}
 #[cfg(feature = "bevy")]
-pub trait EnumFilter: Clone + bevy::prelude::Component {}
+pub trait EnumComponent: Clone + bevy::prelude::Component {}
 
 #[cfg(test)]
 mod tests {
@@ -22,7 +22,7 @@ mod tests {
     use bevy_ecs::prelude::*;
 
     #[allow(unused)]
-    #[derive(Clone, Debug, Default, EnumFilter)]
+    #[derive(Clone, Debug, Default, EnumComponent)]
     enum TestEnum {
         #[default]
         A,

@@ -48,7 +48,7 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
 #[derive(Component, Debug)]
 struct Player;
 
-#[derive(Clone, Debug, EnumFilter)]
+#[derive(Clone, Debug, EnumComponent)]
 enum Choice {
     A,
     B,

@@ -6,6 +6,9 @@ Since bevy_ecs_enum_filter version 0.16.2,
 Enum marker check by systems was abolished.  
 Instead, ComponentHooks is used for it.
 
+Derive macro name was changed from EnumFilter to EnumComponent.  
+Because bevy's Component derive macro is missing on code.
+
 The license complies with the original crate.
 
 ## using with only bevy_ecs crate 
@@ -21,7 +24,7 @@ use bevy_ecs::prelude::*;
 fn main() {
     // Clone is required
     // Component is unnecessary
-    #[derive(Clone, Debug, EnumFilter)]
+    #[derive(Clone, Debug, EnumComponent)]
     enum TestEnum {
         A,
         B,
