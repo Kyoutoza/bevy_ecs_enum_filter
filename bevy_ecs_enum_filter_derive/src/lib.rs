@@ -249,7 +249,6 @@ fn get_crate(name: &str) -> proc_macro2::TokenStream {
         FoundCrate::Itself => quote!(crate),
         FoundCrate::Name(name) => {
             let ident = Ident::new(&name, proc_macro2::Span::call_site());
-            // let ident = format_ident!("{}", &name);
             quote!( #ident )
         }
     }

@@ -56,7 +56,7 @@ fn main() {
 # using bevy crate 
 ```toml
 [dependencies]
-bevy_ecs_enum_filter = {git = "https://github.com/Kyoutoza/bevy_ecs_enum_filter", default-features = false, features = ["bevy"]}
+bevy_ecs_enum_filter = {git = "https://github.com/Kyoutoza/bevy_ecs_enum_filter", features = ["bevy"]}
 ```
 
 ## Bevy Compatibility
