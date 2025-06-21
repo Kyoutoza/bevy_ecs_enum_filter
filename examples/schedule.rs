@@ -27,7 +27,6 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
         .add_systems((
             spawn.run_if(resource_changed::<Input>).in_set(SystemOrder::First),
             (on_insert_a, on_insert_b, on_insert_c, on_insert_q, remove_announce).in_set(SystemOrder::Second),
-            register_enum_filter_systems!(Choice).in_set(SystemOrder::End),
         ));
 
     world.add_schedule(schedule);
@@ -49,7 +48,7 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
 #[derive(Component, Debug)]
 struct Player;
 
-#[derive(Component, Debug, EnumFilter)]
+#[derive(Clone, Debug, EnumFilter)]
 enum Choice {
     A,
     B,
@@ -57,13 +56,13 @@ enum Choice {
     Q,
 }
 
-fn spawn(mut cmd: Commands, q_choice: Query<Entity, With<Player>>, mut input: ResMut<Input>) {
-    let mut entity_cmd = cmd.entity(q_choice.single());
+fn spawn(mut cmd: Commands, q_choice: Query<Entity, With<Player>>, mut input: ResMut<Input>) -> Result<()> {
+    let mut entity_cmd = cmd.entity(q_choice.single()?);
     let binding = std::mem::take(&mut input.0).to_lowercase();
     let input = binding.trim();
 
     if input.is_empty() {
-        return;
+        return Ok(());
     }
 
     match input {
@@ -76,6 +75,8 @@ fn spawn(mut cmd: Commands, q_choice: Query<Entity, With<Player>>, mut input: Re
             entity_cmd.remove::<Choice>()
         }
     };
+
+    Ok(())
 }
 
 fn on_insert_a(query: Query<Entity, Changed<Enum!(Choice::A)>>) {
@@ -98,13 +99,13 @@ fn on_insert_c(query: Query<Entity, Changed<Enum!(Choice::C)>>) {
 
 fn on_insert_q(query: Query<Entity, Changed<Enum!(Choice::Q)>>) {
     if !query.is_empty() {
-        println!("Ultra Bad Choice!!! Bye Bye!!");
+        println!("Bye Bye!!");
         std::process::exit(0);
     }
 }
 
 fn remove_announce(mut removed: RemovedComponents<Choice>) {
-    removed.read().into_iter().for_each(|e| {
+    removed.read().for_each(|e| {
         println!("Removed a Choice component due to your bad choice from entity: {e:?}");
     });
 }

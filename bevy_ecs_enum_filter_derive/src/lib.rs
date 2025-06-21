@@ -74,29 +74,104 @@ pub fn derive_enum_filter(item: TokenStream) -> TokenStream {
 
     let (impl_generics, ty_generics, where_clause) = &input.generics.split_for_impl();
 
-    TokenStream::from(quote! {
-        impl #impl_generics #bevy_ecs_enum_filter::EnumFilter for #ident #ty_generics #where_clause {
-            fn set_marker(cmd: &mut #bevy::prelude::EntityCommands, value: &Self) {
-                #(if matches!(value, #ident::#variants{..}) {
-                    let entity = cmd.id();
-                    let mut commands = cmd.commands();
+    let inner_insert = variants.iter().fold(vec![], |mut list, variant| {
+        list.push(quote! {
+            #ident::#variant => entity_mut.insert(#mod_ident::#variant)
+        });
 
-                    commands.queue(move |world: &mut #bevy::prelude::World| {
-                        let mut entity_mut = world.entity_mut(entity);
-                        if !entity_mut.contains::<#mod_ident::#variants>() {
-                            // Only insert the marker if it doesn't already exist
-                            entity_mut.insert(#mod_ident::#variants);
-                        }
-                    });
-                } else {
-                    cmd.remove::<#mod_ident::#variants>();
-                })*
-            }
+        list
+    });
 
-            fn remove_marker(cmd: &mut #bevy::prelude::EntityCommands) {
-                #(cmd.remove::<#mod_ident::#variants>();)*
+    let inner_remove = variants.iter().fold(vec![], |mut list, variant| {
+        list.push(quote! {
+            #ident::#variant => cmd.remove::<#mod_ident::#variant>()
+        });
+
+        list
+    });
+
+    #[cfg(not(feature = "bevy"))]
+    let impl_component = {
+        quote! {
+            impl #impl_generics #bevy::component::Component for #ident #ty_generics #where_clause {
+                const STORAGE_TYPE: #bevy::component::StorageType = #bevy::component::StorageType::Table;
+                type Mutability = #bevy::component::Mutable;
+
+                fn register_component_hooks(hooks: &mut #bevy::component::ComponentHooks) {
+                    hooks
+                        .on_insert(|mut world, ctx| {
+                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
+                            let mut cmd = world.commands();
+                            cmd.queue(move |world: &mut #bevy::prelude::World| {
+                                let mut entity_mut = world.entity_mut(ctx.entity);
+                                match enum_comp {
+                                    #(#inner_insert),*
+                                };
+                            })
+                        })
+                        .on_replace(|mut world, ctx| {
+                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
+                            let mut cmd = world.commands();
+                            let mut cmd = cmd.entity(ctx.entity);
+                            match enum_comp {
+                                #(#inner_remove),*
+                            };
+                        })
+                        .on_remove(|mut world, ctx| {
+                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
+                            let mut cmd = world.commands();
+                            let mut cmd = cmd.entity(ctx.entity);
+                            match enum_comp {
+                                #(#inner_remove),*
+                            };
+                        });
+                }
             }
         }
+    };
+    #[cfg(feature = "bevy")]
+    let impl_component = {
+        quote! {
+            impl #impl_generics #bevy::ecs::component::Component for #ident #ty_generics #where_clause {
+                const STORAGE_TYPE: #bevy::ecs::component::StorageType = #bevy::ecs::component::StorageType::Table;
+                type Mutability = #bevy::ecs::component::Mutable;
+
+                fn register_component_hooks(hooks: &mut #bevy::ecs::component::ComponentHooks) {
+                    hooks
+                        .on_insert(|mut world, ctx| {
+                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
+                            let mut cmd = world.commands();
+                            cmd.queue(move |world: &mut #bevy::prelude::World| {
+                                let mut entity_mut = world.entity_mut(ctx.entity);
+                                match enum_comp {
+                                    #(#inner_insert),*
+                                };
+                            })
+                        })
+                        .on_replace(|mut world, ctx| {
+                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
+                            let mut cmd = world.commands();
+                            let mut cmd = cmd.entity(ctx.entity);
+                            match enum_comp {
+                                #(#inner_remove),*
+                            };
+                        })
+                        .on_remove(|mut world, ctx| {
+                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
+                            let mut cmd = world.commands();
+                            let mut cmd = cmd.entity(ctx.entity);
+                            match enum_comp {
+                                #(#inner_remove),*
+                            };
+                        });
+                }
+            }
+        }
+    };
+
+    TokenStream::from(quote! {
+        #impl_component
+        impl #impl_generics #bevy_ecs_enum_filter::EnumFilter for #ident #ty_generics #where_clause {}
 
         #[doc = #mod_doc]
         #[doc(hidden)]
@@ -174,7 +249,6 @@ fn get_crate(name: &str) -> proc_macro2::TokenStream {
         FoundCrate::Itself => quote!(crate),
         FoundCrate::Name(name) => {
             let ident = Ident::new(&name, proc_macro2::Span::call_site());
-            // let ident = format_ident!("{}", &name);
             quote!( #ident )
         }
     }
