@@ -39,7 +39,7 @@ fn main() {
     assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::A)>>().single(&world).is_ok());
     assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::B)>>().single(&world).is_err());
 
-    // world detects Enum source is detected
+    // Marker Component is removed when TestEnum is removed
     world.entity_mut(entity).remove::<TestEnum>();
     assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::A)>>().single(&world).is_err());
     assert!(world
