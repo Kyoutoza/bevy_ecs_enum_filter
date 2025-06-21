@@ -21,11 +21,15 @@ mod tests {
     #[cfg(not(feature = "bevy"))]
     use bevy_ecs::prelude::*;
 
-    #[derive(Clone, Debug, EnumFilter)]
+    #[allow(unused)]
+    #[derive(Clone, Debug, Default, EnumFilter)]
     enum TestEnum {
+        #[default]
         A,
-        B,
-        C,
+        B {
+            v: f64,
+        },
+        C(i32),
     }
     use test_enum_filters::*;
 
@@ -40,7 +44,7 @@ mod tests {
 
         fn sys_trigger(mut cmd: Commands, q: Query<Entity>) {
             let entity = q.iter().last().unwrap();
-            cmd.entity(entity).insert(TestEnum::B).trigger(TriTest);
+            cmd.entity(entity).insert(TestEnum::B { v: 0.0 }).trigger(TriTest);
         }
 
         let mut world = World::new();
@@ -91,12 +95,12 @@ mod tests {
         );
         assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::A)>>().single(&world).is_err());
 
-        world.entity_mut(entity).insert(TestEnum::B);
+        world.entity_mut(entity).insert(TestEnum::B { v: 0.0 });
 
         assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::A)>>().single(&world).is_err());
         assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::B)>>().single(&world).is_ok());
 
-        world.entity_mut(entity).insert(TestEnum::C);
+        world.entity_mut(entity).insert(TestEnum::C(42));
 
         assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::B)>>().iter(&world).len() == 0);
         assert!(world.query_filtered::<Entity, Changed<Enum!(TestEnum::A)>>().single(&world).is_err());
