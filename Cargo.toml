@@ -23,4 +23,3 @@ bevy_ecs = { version = "0.16", default-features = false }
 [[example]]
 name = "schedule"
 path = "./examples/schedule.rs"
-required-features = ["macro"]
