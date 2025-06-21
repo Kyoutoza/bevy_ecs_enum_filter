@@ -26,9 +26,11 @@ fn main() {
     // Component is unnecessary
     #[derive(Clone, Debug, EnumComponent)]
     enum TestEnum {
-        A,
-        B,
-        C,
+         A,
+        B {
+            v: f64,
+        },
+        C(i32),
     }
 
     let mut world = World::new();
@@ -46,11 +48,11 @@ fn main() {
         .any(|target| target == entity));
 
     // insert other TestEnum type
-    world.entity_mut(entity).insert(TestEnum::B);
+    world.entity_mut(entity).insert(TestEnum::B { v: 0.0 });
     assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::B)>>().single(&world).is_ok());
 
     // overwrite TestEnum by other type
-    world.entity_mut(entity).insert(TestEnum::C);
+    world.entity_mut(entity).insert(TestEnum::C(42));
     assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::B)>>().single(&world).is_err());
     assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::C)>>().single(&world).is_ok());
 }
