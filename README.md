@@ -14,7 +14,7 @@ The license complies with the original crate.
 ## using with only bevy_ecs crate 
 ```toml
 [dependencies]
-bevy_ecs_enum_filter = {git = "https://github.com/Kyoutoza/bevy_ecs_enum_filter"}
+bevy_ecs_enum_filter = { git = "https://github.com/Kyoutoza/bevy_ecs_enum_filter", branch = "0.16" }
 ```
 
 ```rust
@@ -61,12 +61,12 @@ fn main() {
 ## using bevy crate 
 ```toml
 [dependencies]
-bevy_ecs_enum_filter = {git = "https://github.com/Kyoutoza/bevy_ecs_enum_filter", features = ["bevy"]}
+bevy_ecs_enum_filter = { git = "https://github.com/Kyoutoza/bevy_ecs_enum_filter", branch = "0.16", features = ["bevy"]}
 ```
 
 ## Bevy Compatibility
 
 | bevy   | bevy_ecs_enum_filter |
 | :----- | -------------------- |
-| 0.16.x | 0.16.3 (main)          |
+| 0.16.x | 0.16.4 (main)          |
 | 0.15.x | 0.1.0                |
