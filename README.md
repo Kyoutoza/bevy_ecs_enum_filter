@@ -3,7 +3,7 @@
 Cloned [forked](https://github.com/mikkelens/bevy_enum_filter) from [bevy_enum_filter](https://github.com/MrGVSV/bevy_enum_filter) by [MrGVSV](https://github.com/MrGVSV) and edited.
 
 Since bevy_ecs_enum_filter version 0.16.2,  
-Enum marker check by systems were abolished.  
+Enum marker check by systems was abolished.  
 Instead, ComponentHooks is used for it.
 
 The license complies with the original crate.
