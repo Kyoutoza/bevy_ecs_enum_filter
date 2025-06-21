@@ -1,4 +1,4 @@
-## bevy_ecs_enum_filter
+# bevy_ecs_enum_filter
 
 Cloned [forked](https://github.com/mikkelens/bevy_enum_filter) from [bevy_enum_filter](https://github.com/MrGVSV/bevy_enum_filter) by [MrGVSV](https://github.com/MrGVSV) and edited.
 
@@ -8,7 +8,7 @@ Instead, ComponentHooks is used for it.
 
 The license complies with the original crate.
 
-# using with only bevy_ecs crate 
+## using with only bevy_ecs crate 
 ```toml
 [dependencies]
 bevy_ecs_enum_filter = {git = "https://github.com/Kyoutoza/bevy_ecs_enum_filter"}
@@ -53,7 +53,7 @@ fn main() {
 }
 ```
 
-# using bevy crate 
+## using bevy crate 
 ```toml
 [dependencies]
 bevy_ecs_enum_filter = {git = "https://github.com/Kyoutoza/bevy_ecs_enum_filter", features = ["bevy"]}
