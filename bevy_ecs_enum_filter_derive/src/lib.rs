@@ -51,6 +51,7 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
     let ident = &input.ident;
     let mod_ident = get_mod_ident(ident);
     let bevy_ecs_enum_filter = get_crate("bevy_ecs_enum_filter");
+    #[cfg(not(feature = "ambiguous_import"))]
     let bevy = {
         #[cfg(not(feature = "bevy"))]
         {
@@ -108,7 +109,7 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
         list
     });
 
-    #[cfg(not(feature = "bevy"))]
+    #[cfg(all(not(feature = "bevy"), not(feature = "ambiguous_import")))]
     let impl_component = quote! {
             impl #impl_generics #bevy::component::Component for #ident #ty_generics #where_clause {
                 const STORAGE_TYPE: #bevy::component::StorageType = #bevy::component::StorageType::Table;
@@ -146,7 +147,8 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
                 }
             }
     };
-    #[cfg(feature = "bevy")]
+
+    #[cfg(all(feature = "bevy", not(feature = "ambiguous_import")))]
     let impl_component = quote! {
             impl #impl_generics #bevy::ecs::component::Component for #ident #ty_generics #where_clause {
                 const STORAGE_TYPE: #bevy::ecs::component::StorageType = #bevy::ecs::component::StorageType::Table;
@@ -185,22 +187,84 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
             }
     };
 
-    TokenStream::from(quote! {
-        #impl_component
-        impl #impl_generics #bevy_ecs_enum_filter::EnumComponent for #ident #ty_generics #where_clause {}
+    #[cfg(feature = "ambiguous_import")]
+    let impl_component = quote! {
+            impl #impl_generics Component for #ident #ty_generics #where_clause {
+                const STORAGE_TYPE: StorageType = StorageType::Table;
+                type Mutability = Mutable;
 
-        #[doc = #mod_doc]
-        #[doc(hidden)]
-        #vis mod #mod_ident {
-            #(
-                use super::*;
-                #[doc = #docs]
-                #[doc(hidden)]
-                #[derive(#bevy::prelude::Component)]
-                pub struct #variants;
-            )*
-        }
-    })
+                #[allow(unused)]
+                fn register_component_hooks(hooks: &mut ComponentHooks) {
+                    hooks
+                        .on_insert(|mut world, ctx| {
+                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
+                            let mut cmd = world.commands();
+                            cmd.queue(move |world: &mut World| {
+                                let mut entity_mut = world.entity_mut(ctx.entity);
+                                match enum_comp {
+                                    #(#inner_insert),*
+                                };
+                            })
+                        })
+                        .on_replace(|mut world, ctx| {
+                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
+                            let mut cmd = world.commands();
+                            let mut cmd = cmd.entity(ctx.entity);
+                            match enum_comp {
+                                #(#inner_remove),*
+                            };
+                        })
+                        .on_remove(|mut world, ctx| {
+                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
+                            let mut cmd = world.commands();
+                            let mut cmd = cmd.entity(ctx.entity);
+                            match enum_comp {
+                                #(#inner_remove),*
+                            };
+                        });
+                }
+            }
+    };
+
+    #[cfg(feature = "ambiguous_import")]
+    {
+        TokenStream::from(quote! {
+            #impl_component
+            impl #impl_generics #bevy_ecs_enum_filter::EnumComponent for #ident #ty_generics #where_clause {}
+
+            #[doc = #mod_doc]
+            #[doc(hidden)]
+            #vis mod #mod_ident {
+                #(
+                    use super::*;
+                    #[doc = #docs]
+                    #[doc(hidden)]
+                    #[derive(Component)]
+                    pub struct #variants;
+                )*
+            }
+        })
+    }
+
+    #[cfg(not(feature = "ambiguous_import"))]
+    {
+        TokenStream::from(quote! {
+            #impl_component
+            impl #impl_generics #bevy_ecs_enum_filter::EnumComponent for #ident #ty_generics #where_clause {}
+
+            #[doc = #mod_doc]
+            #[doc(hidden)]
+            #vis mod #mod_ident {
+                #(
+                    use super::*;
+                    #[doc = #docs]
+                    #[doc(hidden)]
+                    #[derive(#bevy::prelude::Component)]
+                    pub struct #variants;
+                )*
+            }
+        })
+    }
 }
 
 /// This macro can be used to retrieve the marker component generated by the [`EnumComponent`] derive for

@@ -8,6 +8,7 @@ proc-macro = true
 
 [features]
 bevy = []
+ambiguous_import = []
 
 [dependencies]
 syn = "2.0"
