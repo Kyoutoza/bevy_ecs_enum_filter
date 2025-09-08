@@ -109,8 +109,7 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
     });
 
     #[cfg(not(feature = "bevy"))]
-    let impl_component = {
-        quote! {
+    let impl_component = quote! {
             impl #impl_generics #bevy::component::Component for #ident #ty_generics #where_clause {
                 const STORAGE_TYPE: #bevy::component::StorageType = #bevy::component::StorageType::Table;
                 type Mutability = #bevy::component::Mutable;
@@ -146,11 +145,9 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
                         });
                 }
             }
-        }
     };
     #[cfg(feature = "bevy")]
-    let impl_component = {
-        quote! {
+    let impl_component = quote! {
             impl #impl_generics #bevy::ecs::component::Component for #ident #ty_generics #where_clause {
                 const STORAGE_TYPE: #bevy::ecs::component::StorageType = #bevy::ecs::component::StorageType::Table;
                 type Mutability = #bevy::ecs::component::Mutable;
@@ -186,7 +183,6 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
                         });
                 }
             }
-        }
     };
 
     TokenStream::from(quote! {
@@ -197,6 +193,7 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
         #[doc(hidden)]
         #vis mod #mod_ident {
             #(
+                use super::*;
                 #[doc = #docs]
                 #[doc(hidden)]
                 #[derive(#bevy::prelude::Component)]

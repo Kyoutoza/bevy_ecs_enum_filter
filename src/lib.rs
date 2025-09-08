@@ -9,7 +9,7 @@ pub mod prelude {
 
 /// A trait used to denote an enum as "filterable".
 #[cfg(not(feature = "bevy"))]
-pub trait EnumComponent: Clone + bevy_ecs::prelude::Component {}
+pub trait EnumComponent: Clone + bevy_ecs::component::Component {}
 #[cfg(feature = "bevy")]
 pub trait EnumComponent: Clone + bevy::prelude::Component {}
 
