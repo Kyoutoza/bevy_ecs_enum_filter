@@ -4,7 +4,7 @@ use proc_macro2::Ident;
 use proc_macro_crate::{crate_name, FoundCrate};
 use quote::{format_ident, quote};
 use syn::{
-    parse_macro_input, punctuated::Punctuated, spanned::Spanned, Data, DeriveInput, Path, PathSegment, Token,
+    parse_macro_input, punctuated::Punctuated, spanned::Spanned, Data, DeriveInput, Pat, Path, PathSegment, Token,
 };
 
 /// Derive the `EnumComponent` trait on the given enum.
@@ -29,11 +29,13 @@ use syn::{
 /// We would end up generating the module `foo_filters` which contains the markers `Bar` and `Baz`.
 ///
 /// See the [`Enum!`] macro for how to properly use this generated module.
-#[proc_macro_derive(EnumComponent)]
+#[proc_macro_derive(EnumComponent, attributes(enum_component))]
 pub fn derive_enum_component(item: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(item as DeriveInput);
+    let ast = parse_macro_input!(item as DeriveInput);
+    let _ = ast.span();
+    let DeriveInput { attrs: _, vis, ident, generics, data } = &ast;
 
-    let data = match input.data {
+    let data = match data {
         Data::Enum(data) => data,
         Data::Struct(data) => {
             return syn::Error::new(data.struct_token.span, "Cannot derive `EnumTrait` on struct type")
@@ -47,8 +49,6 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
         }
     };
 
-    let vis = &input.vis;
-    let ident = &input.ident;
     let mod_ident = get_mod_ident(ident);
     let bevy_ecs_enum_filter = get_crate("bevy_ecs_enum_filter");
     #[cfg(not(feature = "ambiguous_import"))]
@@ -63,17 +63,101 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
         }
     };
 
+    let attrs = match parse_attrs(&ast) {
+        Ok(list) => list,
+        Err(e) => return e.into_compile_error().into(),
+    };
+
+    let default_storage_type = || {
+        #[cfg(feature = "ambiguous_import")]
+        {
+            quote!(StorageType::Table)
+        }
+        #[cfg(all(not(feature = "ambiguous_import"), not(feature = "bevy")))]
+        {
+            quote!(#bevy::component::StorageType::Table)
+        }
+        #[cfg(all(not(feature = "ambiguous_import"), feature = "bevy"))]
+        {
+            quote!(#bevy::ecs::component::StorageType::Table)
+        }
+    };
+
+    let storage_type = match attrs.is_empty() {
+        true => default_storage_type(),
+        false => {
+            let mut filtered = attrs
+                .iter()
+                .filter(|source| source.source_type.is_ident("storage_type"))
+                .collect::<Vec<_>>();
+
+            if 1 < filtered.len() {
+                return syn::Error::new(ast.span(), "Only one storage_type is allowed for EnumComponent")
+                    .into_compile_error()
+                    .into();
+            }
+
+            match filtered.pop() {
+                Some(source) => {
+                    let pat = &source.source_value;
+                    quote!(#pat)
+                }
+                None => default_storage_type(),
+            }
+        }
+    };
+
+    let default_mutability = || {
+        #[cfg(feature = "ambiguous_import")]
+        {
+            quote!(Mutable)
+        }
+        #[cfg(all(not(feature = "ambiguous_import"), not(feature = "bevy")))]
+        {
+            quote!(#bevy::component::Mutable)
+        }
+        #[cfg(all(not(feature = "ambiguous_import"), feature = "bevy"))]
+        {
+            quote!(#bevy::ecs::component::Mutable)
+        }
+    };
+
+    let mutability = match attrs.is_empty() {
+        true => default_mutability(),
+        false => {
+            let mut filtered = attrs
+                .iter()
+                .filter(|source| source.source_type.is_ident("mutability"))
+                .collect::<Vec<_>>();
+
+            if 1 < filtered.len() {
+                return syn::Error::new(ast.span(), "Only one mutability is allowed for EnumComponent")
+                    .into_compile_error()
+                    .into();
+            }
+
+            match filtered.pop() {
+                Some(source) => {
+                    let pat = &source.source_value;
+                    quote!(#pat)
+                }
+                None => default_mutability(),
+            }
+        }
+    };
+
     let variants = data.variants.iter().map(|variant| &variant.ident).collect::<Vec<_>>();
 
     let docs = variants.iter().map(|variant| {
         format!("Marker component generated for [`{}::{}`][super::{}::{}]", ident, variant, ident, variant)
     });
+
     let mod_doc = format!(
         "Auto-generated module containing marker components for each variant of [`{}`][super::{}]",
         ident, ident
     );
 
-    let (impl_generics, ty_generics, where_clause) = &input.generics.split_for_impl();
+    let (impl_generics, ty_generics, where_clause) = &generics.split_for_impl();
 
     let inner_insert = data.variants.iter().fold(vec![], |mut list, variant| {
         let head = &variant.ident;
@@ -112,38 +196,40 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
     #[cfg(all(not(feature = "bevy"), not(feature = "ambiguous_import")))]
     let impl_component = quote! {
             impl #impl_generics #bevy::component::Component for #ident #ty_generics #where_clause {
-                const STORAGE_TYPE: #bevy::component::StorageType = #bevy::component::StorageType::Table;
-                type Mutability = #bevy::component::Mutable;
+                const STORAGE_TYPE: #bevy::component::StorageType = #storage_type;
+                type Mutability = #mutability;
 
-                #[allow(unused)]
-                fn register_component_hooks(hooks: &mut #bevy::component::ComponentHooks) {
-                    hooks
-                        .on_insert(|mut world, ctx| {
-                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                            let mut cmd = world.commands();
-                            cmd.queue(move |world: &mut #bevy::prelude::World| {
-                                let mut entity_mut = world.entity_mut(ctx.entity);
-                                match enum_comp {
-                                    #(#inner_insert),*
-                                };
-                            })
-                        })
-                        .on_replace(|mut world, ctx| {
-                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                            let mut cmd = world.commands();
-                            let mut cmd = cmd.entity(ctx.entity);
+                fn on_insert() -> Option<#bevy::lifecycle::ComponentHook> {
+                    Some(|mut world, #bevy::lifecycle::HookContext { entity, .. }| {
+                        let enum_comp = world.get::<#ident>(entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        cmd.queue(move |world: &mut #bevy::prelude::World| {
+                            let mut entity_mut = world.entity_mut(entity);
                             match enum_comp {
-                                #(#inner_remove),*
+                                #(#inner_insert),*
                             };
                         })
-                        .on_remove(|mut world, ctx| {
-                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                            let mut cmd = world.commands();
-                            let mut cmd = cmd.entity(ctx.entity);
-                            match enum_comp {
-                                #(#inner_remove),*
-                            };
-                        });
+                    })
+                }
+                fn on_replace() -> Option<#bevy::lifecycle::ComponentHook> {
+                    Some(|mut world, #bevy::lifecycle::HookContext { entity, .. }| {
+                        let enum_comp = world.get::<#ident>(entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        let mut cmd = cmd.entity(entity);
+                        match enum_comp {
+                            #(#inner_remove),*
+                        };
+                    })
+                }
+                fn on_remove() -> Option<#bevy::lifecycle::ComponentHook> {
+                    Some(|mut world, #bevy::lifecycle::HookContext { entity, .. }| {
+                        let enum_comp = world.get::<#ident>(entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        let mut cmd = cmd.entity(entity);
+                        match enum_comp {
+                            #(#inner_remove),*
+                        };
+                    })
                 }
             }
     };
@@ -151,38 +237,40 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
     #[cfg(all(feature = "bevy", not(feature = "ambiguous_import")))]
     let impl_component = quote! {
             impl #impl_generics #bevy::ecs::component::Component for #ident #ty_generics #where_clause {
-                const STORAGE_TYPE: #bevy::ecs::component::StorageType = #bevy::ecs::component::StorageType::Table;
-                type Mutability = #bevy::ecs::component::Mutable;
+                const STORAGE_TYPE: #bevy::ecs::component::StorageType = #storage_type;
+                type Mutability = #mutability;
 
-                #[allow(unused)]
-                fn register_component_hooks(hooks: &mut #bevy::ecs::component::ComponentHooks) {
-                    hooks
-                        .on_insert(|mut world, ctx| {
-                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                            let mut cmd = world.commands();
-                            cmd.queue(move |world: &mut #bevy::prelude::World| {
-                                let mut entity_mut = world.entity_mut(ctx.entity);
-                                match enum_comp {
-                                    #(#inner_insert),*
-                                };
-                            })
-                        })
-                        .on_replace(|mut world, ctx| {
-                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                            let mut cmd = world.commands();
-                            let mut cmd = cmd.entity(ctx.entity);
+                fn on_insert() -> Option<#bevy::ecs::lifecycle::ComponentHook> {
+                    Some(|mut world, #bevy::ecs::lifecycle::HookContext { entity, .. }| {
+                        let enum_comp = world.get::<#ident>(entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        cmd.queue(move |world: &mut #bevy::prelude::World| {
+                            let mut entity_mut = world.entity_mut(entity);
                             match enum_comp {
-                                #(#inner_remove),*
+                                #(#inner_insert),*
                             };
                         })
-                        .on_remove(|mut world, ctx| {
-                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                            let mut cmd = world.commands();
-                            let mut cmd = cmd.entity(ctx.entity);
-                            match enum_comp {
-                                #(#inner_remove),*
-                            };
-                        });
+                    })
+                }
+                fn on_replace() -> Option<#bevy::ecs::lifecycle::ComponentHook> {
+                    Some(|mut world, #bevy::ecs::lifecycle::HookContext { entity, .. }| {
+                        let enum_comp = world.get::<#ident>(entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        let mut cmd = cmd.entity(entity);
+                        match enum_comp {
+                            #(#inner_remove),*
+                        };
+                    })
+                }
+                fn on_remove() -> Option<#bevy::ecs::lifecycle::ComponentHook> {
+                    Some(|mut world, #bevy::ecs::lifecycle::HookContext { entity, .. }| {
+                        let enum_comp = world.get::<#ident>(entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        let mut cmd = cmd.entity(entity);
+                        match enum_comp {
+                            #(#inner_remove),*
+                        };
+                    })
                 }
             }
     };
@@ -190,38 +278,40 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
     #[cfg(feature = "ambiguous_import")]
     let impl_component = quote! {
             impl #impl_generics Component for #ident #ty_generics #where_clause {
-                const STORAGE_TYPE: StorageType = StorageType::Table;
-                type Mutability = Mutable;
+                const STORAGE_TYPE: StorageType = #storage_type;
+                type Mutability = #mutability;
 
-                #[allow(unused)]
-                fn register_component_hooks(hooks: &mut ComponentHooks) {
-                    hooks
-                        .on_insert(|mut world, ctx| {
-                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                            let mut cmd = world.commands();
-                            cmd.queue(move |world: &mut World| {
-                                let mut entity_mut = world.entity_mut(ctx.entity);
-                                match enum_comp {
-                                    #(#inner_insert),*
-                                };
-                            })
-                        })
-                        .on_replace(|mut world, ctx| {
-                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                            let mut cmd = world.commands();
-                            let mut cmd = cmd.entity(ctx.entity);
+                fn on_insert() -> Option<ComponentHook> {
+                    Some(|mut world, HookContext { entity, .. }| {
+                        let enum_comp = world.get::<#ident>(entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        cmd.queue(move |world: &mut World| {
+                            let mut entity_mut = world.entity_mut(entity);
                             match enum_comp {
-                                #(#inner_remove),*
+                                #(#inner_insert),*
                             };
                         })
-                        .on_remove(|mut world, ctx| {
-                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                            let mut cmd = world.commands();
-                            let mut cmd = cmd.entity(ctx.entity);
-                            match enum_comp {
-                                #(#inner_remove),*
-                            };
-                        });
+                    })
+                }
+                fn on_replace() -> Option<ComponentHook> {
+                    Some(|mut world, HookContext { entity, .. }| {
+                        let enum_comp = world.get::<#ident>(entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        let mut cmd = cmd.entity(entity);
+                        match enum_comp {
+                            #(#inner_remove),*
+                        };
+                    })
+                }
+                fn on_remove() -> Option<ComponentHook> {
+                    Some(|mut world, HookContext { entity, .. }| {
+                        let enum_comp = world.get::<#ident>(entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        let mut cmd = cmd.entity(entity);
+                        match enum_comp {
+                            #(#inner_remove),*
+                        };
+                    })
                 }
             }
     };
@@ -333,4 +423,37 @@ fn get_crate(name: &str) -> proc_macro2::TokenStream {
             quote!( #ident )
         }
     }
+}
+
+#[derive(Debug)]
+struct Source {
+    source_type: Path,
+    source_value: Pat,
+}
+
+fn parse_attrs(ast: &DeriveInput) -> syn::Result<Vec<Source>> {
+    let result = ast
+        .attrs
+        .iter()
+        .filter(|a| a.path().is_ident("enum_component"))
+        .map(|meta| {
+            let mut source = None;
+            let value = meta.parse_nested_meta(|nested| {
+                let source_type = nested.path.clone();
+                let source_value = Pat::parse_multi(nested.value()?)?;
+                source = Some(Source { source_type, source_value });
+
+                Ok(())
+            });
+            match source {
+                Some(value) => Ok(value),
+                None => match value {
+                    Ok(_) => Err(syn::Error::new(ast.span(), "Couldn't parse EnumComponent storage_type")),
+                    Err(e) => Err(e),
+                },
+            }
+        })
+        .collect::<syn::Result<Vec<_>>>()?;
+
+    Ok(result)
 }

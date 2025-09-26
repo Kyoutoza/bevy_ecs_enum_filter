@@ -17,12 +17,18 @@ pub trait EnumComponent: Clone + bevy::prelude::Component {}
 mod tests {
     use super::*;
     #[cfg(feature = "bevy")]
+    use bevy::ecs::component;
+    #[cfg(feature = "bevy")]
     use bevy::prelude::*;
+    #[cfg(not(feature = "bevy"))]
+    use bevy_ecs::component;
     #[cfg(not(feature = "bevy"))]
     use bevy_ecs::prelude::*;
 
     #[allow(unused)]
     #[derive(Clone, Debug, Default, EnumComponent)]
+    #[enum_component(storage_type = component::StorageType::SparseSet)]
+    #[enum_component(mutablity = component::Immutable)]
     enum TestEnum {
         #[default]
         A,
@@ -35,28 +41,32 @@ mod tests {
 
     #[test]
     fn test_observer() {
-        #[derive(Event)]
-        struct TriTest;
-
-        fn on_test(tri: Trigger<TriTest>, q: Query<Entity, With<Enum!(TestEnum::B)>>) {
-            assert!(q.get(tri.target()).is_ok());
+        #[derive(EntityEvent)]
+        struct TrigBExist(Entity);
+        fn on_insert_b(_: On<TrigBExist>, q: Query<Entity, With<Enum!(TestEnum::B)>>) {
+            assert!(!q.is_empty());
         }
 
-        fn sys_trigger(mut cmd: Commands, q: Query<Entity>) {
-            let entity = q.iter().last().unwrap();
-            cmd.entity(entity).insert(TestEnum::B { v: 0.0 }).trigger(TriTest);
+        #[derive(EntityEvent)]
+        struct TrigCExist(Entity);
+        fn on_insert_c(_: On<TrigCExist>, q: Query<Entity, With<Enum!(TestEnum::C)>>) {
+            assert!(!q.is_empty());
         }
 
         let mut world = World::new();
-        world.add_observer(on_test);
+        let entity = world.spawn(TestEnum::A).observe(on_insert_b).observe(on_insert_c).id();
+        let system_id = world.register_system(move |mut cmd: Commands| {
+            cmd.entity(entity).insert(TestEnum::B { v: 0.0 });
+            cmd.trigger(TrigBExist(entity));
 
-        let update_systems = [world.register_system(sys_trigger)];
+            cmd.entity(entity).insert(TestEnum::C(42));
+            cmd.trigger(TrigCExist(entity));
+        });
 
-        world.spawn_empty();
+        world.run_system(system_id).unwrap();
 
-        update_systems.into_iter().for_each(|id| world.run_system(id).unwrap());
-
-        assert!(world.query_filtered::<Entity, With<B>>().single(&world).is_ok());
+        assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::B)>>().single(&world).is_err());
+        assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::C)>>().single(&world).is_ok());
     }
 
     #[test]
@@ -66,11 +76,13 @@ mod tests {
 
         assert!(world.query_filtered::<Entity, With<A>>().single(&world).is_ok());
         assert!(world.query_filtered::<Entity, Added<A>>().single(&world).is_ok());
+        assert!(world.query::<&A>().single(&world).is_ok());
         assert!(world.query_filtered::<Entity, Added<B>>().single(&world).is_err());
 
         world.entity_mut(entity).remove::<TestEnum>();
 
         assert!(world.query_filtered::<Entity, With<A>>().single(&world).is_err());
+        assert!(world.query::<&A>().single(&world).is_err());
         assert!(world.query_filtered::<Entity, Without<A>>().iter(&world).any(|target| target == entity));
         assert!(world.query_filtered::<Entity, Added<A>>().single(&world).is_err());
     }

@@ -2,7 +2,6 @@
 
 Cloned [forked](https://github.com/mikkelens/bevy_enum_filter) from [bevy_enum_filter](https://github.com/MrGVSV/bevy_enum_filter) by [MrGVSV](https://github.com/MrGVSV) and edited.
 
-Since bevy_ecs_enum_filter version 0.16.2,  
 Enum marker check by systems was abolished.  
 Instead, ComponentHooks is used for it.
 
@@ -14,7 +13,7 @@ The license complies with the original crate.
 ## using with only bevy_ecs crate 
 ```toml
 [dependencies]
-bevy_ecs_enum_filter = { git = "https://github.com/Kyoutoza/bevy_ecs_enum_filter", branch = "0.16" }
+bevy_ecs_enum_filter = { git = "https://github.com/Kyoutoza/bevy_ecs_enum_filter", branch = "0.17" }
 ```
 
 ```rust
@@ -23,12 +22,18 @@ use bevy_ecs::prelude::*;
 
 fn main() {
     // Clone is required
-    // Component is unnecessary
+    // Component is unnecessary, it will be conflict with EnumComponent
     #[derive(Clone, Debug, EnumComponent)]
+    // default const STORAGE_TYPE for Component implementation is bevy_ecs(bevy::ecs)::component::StorageType::Table
+    // if you need to change it, use attribute enum_component(storage_type = bevy_ecs(bevy::ecs)::component::StorageType::SparseSet)
+    #[enum_component(storage_type = bevy_ecs::component::StorageType::SparseSet)]
+    // default type Mutability for Component implementation is bevy_ecs(bevy::ecs)::component::Mutable
+    // if you need to change it, use attribute enum_component(mutability = bevy_ecs(bevy::ecs)::component::Immutable)
+    #[enum_component(mutablity = bevy_ecs::component::Immutable)]
     enum TestEnum {
         A,
         B {
-            v: f64,
+          v: f64,
         },
         C(i32),
     }
@@ -51,7 +56,7 @@ fn main() {
     world.entity_mut(entity).insert(TestEnum::B { v: 0.0 });
     assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::B)>>().single(&world).is_ok());
 
-    // overwrite TestEnum by other type
+    // overwritten TestEnum by other variable
     world.entity_mut(entity).insert(TestEnum::C(42));
     assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::B)>>().single(&world).is_err());
     assert!(world.query_filtered::<Entity, Added<Enum!(TestEnum::C)>>().single(&world).is_ok());
@@ -61,7 +66,7 @@ fn main() {
 ## using bevy crate 
 ```toml
 [dependencies]
-bevy_ecs_enum_filter = { git = "https://github.com/Kyoutoza/bevy_ecs_enum_filter", branch = "0.16", features = [
+bevy_ecs_enum_filter = { git = "https://github.com/Kyoutoza/bevy_ecs_enum_filter", branch = "0.17", features = [
   "bevy",
 ] }
 ```
@@ -70,5 +75,6 @@ bevy_ecs_enum_filter = { git = "https://github.com/Kyoutoza/bevy_ecs_enum_filter
 
 | bevy   | bevy_ecs_enum_filter |
 | :----- | -------------------- |
+| 0.17.x | 0.17.0-rc.2 ("0.17" branch)          |
 | 0.16.x | 0.16.6 (main)          |
 | 0.15.x | 0.1.0                |
