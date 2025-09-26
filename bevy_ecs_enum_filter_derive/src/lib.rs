@@ -91,7 +91,7 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
                 .filter(|source| source.source_type.is_ident("storage_type"))
                 .collect::<Vec<_>>();
 
-            if filtered.len() != 1 {
+            if 1 < filtered.len() {
                 return syn::Error::new(ast.span(), "Only one storage_type is allowed for EnumComponent")
                     .into_compile_error()
                     .into();
@@ -103,6 +103,45 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
                     quote!(#pat)
                 }
                 None => default_storage_type(),
+            }
+        }
+    };
+
+    let default_mutability = || {
+        #[cfg(feature = "ambiguous_import")]
+        {
+            quote!(Mutable)
+        }
+        #[cfg(all(not(feature = "ambiguous_import"), not(feature = "bevy")))]
+        {
+            quote!(#bevy::component::Mutable)
+        }
+        #[cfg(all(not(feature = "ambiguous_import"), feature = "bevy"))]
+        {
+            quote!(#bevy::ecs::component::Mutable)
+        }
+    };
+
+    let mutability = match attrs.is_empty() {
+        true => default_mutability(),
+        false => {
+            let mut filtered = attrs
+                .iter()
+                .filter(|source| source.source_type.is_ident("mutability"))
+                .collect::<Vec<_>>();
+
+            if 1 < filtered.len() {
+                return syn::Error::new(ast.span(), "Only one mutability is allowed for EnumComponent")
+                    .into_compile_error()
+                    .into();
+            }
+
+            match filtered.pop() {
+                Some(source) => {
+                    let pat = &source.source_value;
+                    quote!(#pat)
+                }
+                None => default_mutability(),
             }
         }
     };
@@ -158,7 +197,7 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
     let impl_component = quote! {
             impl #impl_generics #bevy::component::Component for #ident #ty_generics #where_clause {
                 const STORAGE_TYPE: #bevy::component::StorageType = #storage_type;
-                type Mutability = #bevy::component::Mutable;
+                type Mutability = #mutability;
 
                 fn on_insert() -> Option<#bevy::lifecycle::ComponentHook> {
                     Some(|mut world, #bevy::lifecycle::HookContext { entity, .. }| {
@@ -199,7 +238,7 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
     let impl_component = quote! {
             impl #impl_generics #bevy::ecs::component::Component for #ident #ty_generics #where_clause {
                 const STORAGE_TYPE: #bevy::ecs::component::StorageType = #storage_type;
-                type Mutability = #bevy::ecs::component::Mutable;
+                type Mutability = #mutability;
 
                 fn on_insert() -> Option<#bevy::ecs::lifecycle::ComponentHook> {
                     Some(|mut world, #bevy::ecs::lifecycle::HookContext { entity, .. }| {
@@ -240,7 +279,7 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
     let impl_component = quote! {
             impl #impl_generics Component for #ident #ty_generics #where_clause {
                 const STORAGE_TYPE: StorageType = #storage_type;
-                type Mutability = Mutable;
+                type Mutability = #mutability;
 
                 fn on_insert() -> Option<ComponentHook> {
                     Some(|mut world, HookContext { entity, .. }| {
