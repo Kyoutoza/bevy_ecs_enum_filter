@@ -69,11 +69,15 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
     };
 
     let default_storage_type = || {
-        #[cfg(not(feature = "bevy"))]
+        #[cfg(feature = "ambiguous_import")]
+        {
+            quote!(StorageType::Table)
+        }
+        #[cfg(all(not(feature = "ambiguous_import"), not(feature = "bevy")))]
         {
             quote!(#bevy::component::StorageType::Table)
         }
-        #[cfg(feature = "bevy")]
+        #[cfg(all(not(feature = "ambiguous_import"), feature = "bevy"))]
         {
             quote!(#bevy::ecs::component::StorageType::Table)
         }
@@ -194,7 +198,7 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
     #[cfg(all(feature = "bevy", not(feature = "ambiguous_import")))]
     let impl_component = quote! {
             impl #impl_generics #bevy::ecs::component::Component for #ident #ty_generics #where_clause {
-                const STORAGE_TYPE: #bevy::ecs::component::StorageType = #bevy::ecs::component::StorageType::Table;
+                const STORAGE_TYPE: #bevy::ecs::component::StorageType = #storage_type;
                 type Mutability = #bevy::ecs::component::Mutable;
 
                 fn on_insert() -> Option<#bevy::ecs::lifecycle::ComponentHook> {
@@ -235,7 +239,7 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
     #[cfg(feature = "ambiguous_import")]
     let impl_component = quote! {
             impl #impl_generics Component for #ident #ty_generics #where_clause {
-                const STORAGE_TYPE: StorageType = StorageType::Table;
+                const STORAGE_TYPE: StorageType = #storage_type;
                 type Mutability = Mutable;
 
                 fn on_insert() -> Option<ComponentHook> {
