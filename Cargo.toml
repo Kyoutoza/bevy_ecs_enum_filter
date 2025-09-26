@@ -1,6 +1,6 @@
 [package]
 name = "bevy_ecs_enum_filter"
-version = "0.16.6"
+version = "0.17.0-rc.2"
 edition = "2024"
 description = "cloned https://github.com/mikkelens/bevy_enum_filter forked https://github.com/MrGVSV/bevy_enum_filter and edited"
 
@@ -8,16 +8,16 @@ description = "cloned https://github.com/mikkelens/bevy_enum_filter forked https
 # use bevy crate instead of bevy_ecs crate
 bevy = ["dep:bevy", "bevy_ecs_enum_filter_derive/bevy"]
 # for a case that the dependencies in Cargo.toml do not directly include the bevy or bevy_ecs crates
-# requires manually import Component, ComponentHooks, Mutable and StorageType
+# requires manually import World, Component, ComponentHooks, Mutable and StorageType
 ambiguous_import = ["bevy_ecs_enum_filter_derive/ambiguous_import"]
 
 [dependencies]
-bevy = { version = "0.16", default-features = false, optional = true }
-bevy_ecs = { version = "0.16", default-features = false }
+bevy = { version = "=0.17.0-rc.2", default-features = false, optional = true }
+bevy_ecs = { version = "=0.17.0-rc.2", default-features = false }
 bevy_ecs_enum_filter_derive = { path = "./bevy_ecs_enum_filter_derive" }
 
 [dev-dependencies]
-bevy = { version = "0.16", default-features = false }
+bevy = { version = "=0.17.0-rc.2", default-features = false }
 
 [[example]]
 name = "schedule"

@@ -115,35 +115,37 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
                 const STORAGE_TYPE: #bevy::component::StorageType = #bevy::component::StorageType::Table;
                 type Mutability = #bevy::component::Mutable;
 
-                #[allow(unused)]
-                fn register_component_hooks(hooks: &mut #bevy::component::ComponentHooks) {
-                    hooks
-                        .on_insert(|mut world, ctx| {
-                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                            let mut cmd = world.commands();
-                            cmd.queue(move |world: &mut #bevy::prelude::World| {
-                                let mut entity_mut = world.entity_mut(ctx.entity);
-                                match enum_comp {
-                                    #(#inner_insert),*
-                                };
-                            })
-                        })
-                        .on_replace(|mut world, ctx| {
-                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                            let mut cmd = world.commands();
-                            let mut cmd = cmd.entity(ctx.entity);
+                fn on_insert() -> Option<#bevy::lifecycle::ComponentHook> {
+                    Some(|mut world, #bevy::lifecycle::HookContext { entity, .. }| {
+                        let enum_comp = world.get::<#ident>(entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        cmd.queue(move |world: &mut #bevy::prelude::World| {
+                            let mut entity_mut = world.entity_mut(entity);
                             match enum_comp {
-                                #(#inner_remove),*
+                                #(#inner_insert),*
                             };
                         })
-                        .on_remove(|mut world, ctx| {
-                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                            let mut cmd = world.commands();
-                            let mut cmd = cmd.entity(ctx.entity);
-                            match enum_comp {
-                                #(#inner_remove),*
-                            };
-                        });
+                    })
+                }
+                fn on_replace() -> Option<#bevy::lifecycle::ComponentHook> {
+                    Some(|mut world, #bevy::lifecycle::HookContext { entity, .. }| {
+                        let enum_comp = world.get::<#ident>(entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        let mut cmd = cmd.entity(entity);
+                        match enum_comp {
+                            #(#inner_remove),*
+                        };
+                    })
+                }
+                fn on_remove() -> Option<#bevy::lifecycle::ComponentHook> {
+                    Some(|mut world, #bevy::lifecycle::HookContext { entity, .. }| {
+                        let enum_comp = world.get::<#ident>(entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        let mut cmd = cmd.entity(entity);
+                        match enum_comp {
+                            #(#inner_remove),*
+                        };
+                    })
                 }
             }
     };
@@ -154,35 +156,37 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
                 const STORAGE_TYPE: #bevy::ecs::component::StorageType = #bevy::ecs::component::StorageType::Table;
                 type Mutability = #bevy::ecs::component::Mutable;
 
-                #[allow(unused)]
-                fn register_component_hooks(hooks: &mut #bevy::ecs::component::ComponentHooks) {
-                    hooks
-                        .on_insert(|mut world, ctx| {
-                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                            let mut cmd = world.commands();
-                            cmd.queue(move |world: &mut #bevy::prelude::World| {
-                                let mut entity_mut = world.entity_mut(ctx.entity);
-                                match enum_comp {
-                                    #(#inner_insert),*
-                                };
-                            })
-                        })
-                        .on_replace(|mut world, ctx| {
-                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                            let mut cmd = world.commands();
-                            let mut cmd = cmd.entity(ctx.entity);
+                fn on_insert() -> Option<#bevy::ecs::lifecycle::ComponentHook> {
+                    Some(|mut world, #bevy::ecs::lifecycle::HookContext { entity, .. }| {
+                        let enum_comp = world.get::<#ident>(entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        cmd.queue(move |world: &mut #bevy::prelude::World| {
+                            let mut entity_mut = world.entity_mut(entity);
                             match enum_comp {
-                                #(#inner_remove),*
+                                #(#inner_insert),*
                             };
                         })
-                        .on_remove(|mut world, ctx| {
-                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                            let mut cmd = world.commands();
-                            let mut cmd = cmd.entity(ctx.entity);
-                            match enum_comp {
-                                #(#inner_remove),*
-                            };
-                        });
+                    })
+                }
+                fn on_replace() -> Option<#bevy::ecs::lifecycle::ComponentHook> {
+                    Some(|mut world, #bevy::ecs::lifecycle::HookContext { entity, .. }| {
+                        let enum_comp = world.get::<#ident>(entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        let mut cmd = cmd.entity(entity);
+                        match enum_comp {
+                            #(#inner_remove),*
+                        };
+                    })
+                }
+                fn on_remove() -> Option<#bevy::ecs::lifecycle::ComponentHook> {
+                    Some(|mut world, #bevy::ecs::lifecycle::HookContext { entity, .. }| {
+                        let enum_comp = world.get::<#ident>(entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        let mut cmd = cmd.entity(entity);
+                        match enum_comp {
+                            #(#inner_remove),*
+                        };
+                    })
                 }
             }
     };
@@ -193,35 +197,37 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
                 const STORAGE_TYPE: StorageType = StorageType::Table;
                 type Mutability = Mutable;
 
-                #[allow(unused)]
-                fn register_component_hooks(hooks: &mut ComponentHooks) {
-                    hooks
-                        .on_insert(|mut world, ctx| {
-                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                            let mut cmd = world.commands();
-                            cmd.queue(move |world: &mut World| {
-                                let mut entity_mut = world.entity_mut(ctx.entity);
-                                match enum_comp {
-                                    #(#inner_insert),*
-                                };
-                            })
-                        })
-                        .on_replace(|mut world, ctx| {
-                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                            let mut cmd = world.commands();
-                            let mut cmd = cmd.entity(ctx.entity);
+                fn on_insert() -> Option<ComponentHook> {
+                    Some(|mut world, HookContext { entity, .. }| {
+                        let enum_comp = world.get::<#ident>(entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        cmd.queue(move |world: &mut World| {
+                            let mut entity_mut = world.entity_mut(entity);
                             match enum_comp {
-                                #(#inner_remove),*
+                                #(#inner_insert),*
                             };
                         })
-                        .on_remove(|mut world, ctx| {
-                            let enum_comp = world.get::<#ident>(ctx.entity).unwrap().clone();
-                            let mut cmd = world.commands();
-                            let mut cmd = cmd.entity(ctx.entity);
-                            match enum_comp {
-                                #(#inner_remove),*
-                            };
-                        });
+                    })
+                }
+                fn on_replace() -> Option<ComponentHook> {
+                    Some(|mut world, HookContext { entity, .. }| {
+                        let enum_comp = world.get::<#ident>(entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        let mut cmd = cmd.entity(entity);
+                        match enum_comp {
+                            #(#inner_remove),*
+                        };
+                    })
+                }
+                fn on_remove() -> Option<ComponentHook> {
+                    Some(|mut world, HookContext { entity, .. }| {
+                        let enum_comp = world.get::<#ident>(entity).unwrap().clone();
+                        let mut cmd = world.commands();
+                        let mut cmd = cmd.entity(entity);
+                        match enum_comp {
+                            #(#inner_remove),*
+                        };
+                    })
                 }
             }
     };

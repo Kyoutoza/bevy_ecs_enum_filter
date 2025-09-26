@@ -35,28 +35,20 @@ mod tests {
 
     #[test]
     fn test_observer() {
-        #[derive(Event)]
-        struct TriTest;
-
-        fn on_test(tri: Trigger<TriTest>, q: Query<Entity, With<Enum!(TestEnum::B)>>) {
-            assert!(q.get(tri.target()).is_ok());
-        }
-
-        fn sys_trigger(mut cmd: Commands, q: Query<Entity>) {
-            let entity = q.iter().last().unwrap();
-            cmd.entity(entity).insert(TestEnum::B { v: 0.0 }).trigger(TriTest);
-        }
-
         let mut world = World::new();
-        world.add_observer(on_test);
+        let system_id = world.register_system(|mut cmd: Commands, q: Query<Entity>| {
+            let entity = q.iter().last().unwrap();
+            cmd.entity(entity).insert(TestEnum::B { v: 0.0 });
 
-        let update_systems = [world.register_system(sys_trigger)];
+            cmd.entity(entity).insert(TestEnum::C(42));
+        });
 
-        world.spawn_empty();
+        world.spawn(TestEnum::A);
+        world.run_system(system_id).unwrap();
 
-        update_systems.into_iter().for_each(|id| world.run_system(id).unwrap());
-
-        assert!(world.query_filtered::<Entity, With<B>>().single(&world).is_ok());
+        assert!(world.query_filtered::<Entity, With<A>>().single(&world).is_err());
+        assert!(world.query_filtered::<Entity, With<B>>().single(&world).is_err());
+        assert!(world.query_filtered::<Entity, With<C>>().single(&world).is_ok());
     }
 
     #[test]
