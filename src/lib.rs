@@ -7,11 +7,25 @@ pub mod prelude {
     pub use bevy_ecs_enum_filter_derive::Enum;
 }
 
+use bevy_ecs::component::StorageType::SparseSet;
+
 /// A trait used to denote an enum as "filterable".
 #[cfg(not(feature = "bevy"))]
 pub trait EnumComponent: Clone + bevy_ecs::component::Component {}
 #[cfg(feature = "bevy")]
 pub trait EnumComponent: Clone + bevy::prelude::Component {}
+
+#[derive(Clone, Debug, Default, EnumComponent)]
+#[enum_component(storage_type = bevy_ecs::component::StorageType::Table)]
+#[enum_component(storage_type = SparseSet)]
+pub enum Test {
+    #[default]
+    A,
+    B {
+        v: f64,
+    },
+    C(i32),
+}
 
 #[cfg(test)]
 mod tests {
