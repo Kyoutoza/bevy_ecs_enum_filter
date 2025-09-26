@@ -16,7 +16,6 @@ pub trait EnumComponent: Clone + bevy_ecs::component::Component {}
 pub trait EnumComponent: Clone + bevy::prelude::Component {}
 
 #[derive(Clone, Debug, Default, EnumComponent)]
-#[enum_component(storage_type = bevy_ecs::component::StorageType::Table)]
 #[enum_component(storage_type = SparseSet)]
 pub enum Test {
     #[default]

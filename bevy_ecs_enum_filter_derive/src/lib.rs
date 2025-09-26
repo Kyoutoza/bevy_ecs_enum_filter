@@ -81,13 +81,26 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
 
     let storage_type = match attrs.is_empty() {
         true => default_storage_type(),
-        false => match attrs.iter().find(|source| source.source_type.is_ident("storage_type")) {
-            Some(source) => {
-                let pat = &source.source_value;
-                quote!(#pat)
+        false => {
+            let mut filtered = attrs
+                .iter()
+                .filter(|source| source.source_type.is_ident("storage_type"))
+                .collect::<Vec<_>>();
+
+            if filtered.len() != 1 {
+                return syn::Error::new(ast.span(), "Only one storage_type is allowed for EnumComponent")
+                    .into_compile_error()
+                    .into();
             }
-            None => default_storage_type(),
-        },
+
+            match filtered.pop() {
+                Some(source) => {
+                    let pat = &source.source_value;
+                    quote!(#pat)
+                }
+                None => default_storage_type(),
+            }
+        }
     };
 
     let variants = data.variants.iter().map(|variant| &variant.ident).collect::<Vec<_>>();
