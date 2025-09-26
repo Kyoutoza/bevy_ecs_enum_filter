@@ -13,17 +13,6 @@ pub trait EnumComponent: Clone + bevy_ecs::component::Component {}
 #[cfg(feature = "bevy")]
 pub trait EnumComponent: Clone + bevy::prelude::Component {}
 
-#[derive(Clone, Debug, Default, EnumComponent)]
-#[enum_component(mutability =  bevy_ecs::component::Mutable)]
-pub enum Test {
-    #[default]
-    A,
-    B {
-        v: f64,
-    },
-    C(i32),
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

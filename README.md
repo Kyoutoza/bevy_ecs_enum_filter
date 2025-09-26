@@ -2,7 +2,6 @@
 
 Cloned [forked](https://github.com/mikkelens/bevy_enum_filter) from [bevy_enum_filter](https://github.com/MrGVSV/bevy_enum_filter) by [MrGVSV](https://github.com/MrGVSV) and edited.
 
-Since bevy_ecs_enum_filter version 0.16.2,  
 Enum marker check by systems was abolished.  
 Instead, ComponentHooks is used for it.
 
@@ -23,8 +22,14 @@ use bevy_ecs::prelude::*;
 
 fn main() {
     // Clone is required
-    // Component is unnecessary
+    // Component is unnecessary, it will be conflict with EnumComponent
     #[derive(Clone, Debug, EnumComponent)]
+    // default const STORAGE_TYPE for Component implementation is bevy_ecs(bevy::ecs)::component::StorageType::Table
+    // if you need to change it, use attribute enum_component(storage_type = bevy_ecs(bevy::ecs)::component::StorageType::SparseSet)
+    #[enum_component(storage_type = bevy_ecs::component::StorageType::SparseSet)]
+    // default type Mutability for Component implementation is bevy_ecs(bevy::ecs)::component::Mutable
+    // if you need to change it, use attribute enum_component(mutability = bevy_ecs(bevy::ecs)::component::Immutable)
+    #[enum_component(mutablity = bevy_ecs::component::Immutable)]
     enum TestEnum {
         A,
         B {
