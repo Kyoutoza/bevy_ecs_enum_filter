@@ -35,20 +35,32 @@ mod tests {
 
     #[test]
     fn test_observer() {
+        #[derive(EntityEvent)]
+        struct TrigBExist(Entity);
+        fn on_insert_b(_: On<TrigBExist>, q: Query<Entity, With<Enum!(TestEnum::B)>>) {
+            assert!(!q.is_empty());
+        }
+
+        #[derive(EntityEvent)]
+        struct TrigCExist(Entity);
+        fn on_insert_c(_: On<TrigCExist>, q: Query<Entity, With<Enum!(TestEnum::C)>>) {
+            assert!(!q.is_empty());
+        }
+
         let mut world = World::new();
-        let system_id = world.register_system(|mut cmd: Commands, q: Query<Entity>| {
-            let entity = q.iter().last().unwrap();
+        let entity = world.spawn(TestEnum::A).observe(on_insert_b).observe(on_insert_c).id();
+        let system_id = world.register_system(move |mut cmd: Commands| {
             cmd.entity(entity).insert(TestEnum::B { v: 0.0 });
+            cmd.trigger(TrigBExist(entity));
 
             cmd.entity(entity).insert(TestEnum::C(42));
+            cmd.trigger(TrigCExist(entity));
         });
 
-        world.spawn(TestEnum::A);
         world.run_system(system_id).unwrap();
 
-        assert!(world.query_filtered::<Entity, With<A>>().single(&world).is_err());
-        assert!(world.query_filtered::<Entity, With<B>>().single(&world).is_err());
-        assert!(world.query_filtered::<Entity, With<C>>().single(&world).is_ok());
+        assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::B)>>().single(&world).is_err());
+        assert!(world.query_filtered::<Entity, With<Enum!(TestEnum::C)>>().single(&world).is_ok());
     }
 
     #[test]
