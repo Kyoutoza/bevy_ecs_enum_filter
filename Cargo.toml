@@ -8,7 +8,7 @@ description = "cloned https://github.com/mikkelens/bevy_enum_filter forked https
 # use bevy crate instead of bevy_ecs crate
 bevy = ["dep:bevy", "bevy_ecs_enum_filter_derive/bevy"]
 # for a case that the dependencies in Cargo.toml do not directly include the bevy or bevy_ecs crates
-# requires manually import World, Component, ComponentHooks, Mutable and StorageType
+# requires manually import World, Component, ComponentHook, HookContext, Mutable and StorageType
 ambiguous_import = ["bevy_ecs_enum_filter_derive/ambiguous_import"]
 
 [dependencies]
