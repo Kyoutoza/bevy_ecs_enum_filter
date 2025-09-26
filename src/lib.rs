@@ -70,11 +70,13 @@ mod tests {
 
         assert!(world.query_filtered::<Entity, With<A>>().single(&world).is_ok());
         assert!(world.query_filtered::<Entity, Added<A>>().single(&world).is_ok());
+        assert!(world.query::<&A>().single(&world).is_ok());
         assert!(world.query_filtered::<Entity, Added<B>>().single(&world).is_err());
 
         world.entity_mut(entity).remove::<TestEnum>();
 
         assert!(world.query_filtered::<Entity, With<A>>().single(&world).is_err());
+        assert!(world.query::<&A>().single(&world).is_err());
         assert!(world.query_filtered::<Entity, Without<A>>().iter(&world).any(|target| target == entity));
         assert!(world.query_filtered::<Entity, Added<A>>().single(&world).is_err());
     }
