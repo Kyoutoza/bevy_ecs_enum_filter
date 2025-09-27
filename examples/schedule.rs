@@ -1,5 +1,5 @@
 use bevy_ecs::prelude::*;
-use bevy_ecs_enum_filter::prelude::*;
+use bevy_ecs_enum_filter::{EnumComponent, prelude::*};
 
 #[derive(bevy_ecs::schedule::ScheduleLabel, Debug, Hash, PartialEq, Eq, Clone)]
 pub struct MainSchedule;

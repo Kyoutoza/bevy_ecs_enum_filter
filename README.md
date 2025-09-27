@@ -29,7 +29,7 @@ fn main() {
     #[enum_component(storage_type = bevy_ecs::component::StorageType::SparseSet)]
     // default type Mutability for Component implementation is bevy_ecs(bevy::ecs)::component::Mutable
     // if you need to change it, use attribute enum_component(mutability = bevy_ecs(bevy::ecs)::component::Immutable)
-    #[enum_component(mutablity = bevy_ecs::component::Immutable)]
+    #[enum_component(mutability = bevy_ecs::component::Immutable)]
     enum TestEnum {
         A,
         B {
@@ -75,6 +75,6 @@ bevy_ecs_enum_filter = { git = "https://github.com/Kyoutoza/bevy_ecs_enum_filter
 
 | bevy   | bevy_ecs_enum_filter |
 | :----- | -------------------- |
-| 0.17.x | 0.17.0-rc.2 ("0.17" branch)          |
-| 0.16.x | 0.16.6 (main)          |
+| 0.17.x | 0.17.0-rc.2 (main branch)          |
+| 0.16.x | 0.16.6 ("0.17" branch)          |
 | 0.15.x | 0.1.0                |

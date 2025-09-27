@@ -1,7 +1,10 @@
 #![doc = include_str!("../README.md")]
 
+pub use bevy_ecs_enum_filter_derive::{Enum, EnumComponent};
+
 pub mod prelude {
-    pub use bevy_ecs_enum_filter_derive::{Enum, EnumComponent};
+    pub use crate::EnumComponent;
+    pub use bevy_ecs_enum_filter_derive::Enum;
 }
 
 /// A trait used to denote an enum as "filterable".
@@ -10,9 +13,21 @@ pub trait EnumComponent: Clone + bevy_ecs::component::Component {}
 #[cfg(feature = "bevy")]
 pub trait EnumComponent: Clone + bevy::prelude::Component {}
 
+// #[derive(Clone, Debug, Default, prelude::EnumComponent)]
+// #[enum_component(storage_type = bevy_ecs::component::StorageType::SparseSet)]
+// #[enum_component(mutability = bevy_ecs::component::Immutable)]
+// pub enum Test {
+//     #[default]
+//     A,
+//     B {
+//         v: f64,
+//     },
+//     C(i32),
+// }
+
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::prelude::*;
     #[cfg(feature = "bevy")]
     use bevy::ecs::component;
     #[cfg(feature = "bevy")]
@@ -25,7 +40,7 @@ mod tests {
     #[allow(unused)]
     #[derive(Clone, Debug, Default, EnumComponent)]
     #[enum_component(storage_type = component::StorageType::SparseSet)]
-    #[enum_component(mutablity = component::Immutable)]
+    #[enum_component(mutability = component::Immutable)]
     enum TestEnum {
         #[default]
         A,
