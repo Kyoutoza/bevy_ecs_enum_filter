@@ -1,10 +1,7 @@
 #![doc = include_str!("../README.md")]
 
-pub use bevy_ecs_enum_filter_derive::{Enum, EnumComponent};
-
 pub mod prelude {
-    pub use crate::EnumComponent;
-    pub use bevy_ecs_enum_filter_derive::Enum;
+    pub use bevy_ecs_enum_filter_derive::{Enum, EnumComponent};
 }
 
 /// A trait used to denote an enum as "filterable".

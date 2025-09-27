@@ -32,7 +32,7 @@ use syn::{
 #[proc_macro_derive(EnumComponent, attributes(enum_component))]
 pub fn derive_enum_component(item: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(item as DeriveInput);
-    let _ = ast.span();
+    let span = ast.span();
     let DeriveInput { attrs: _, vis, ident, generics, data } = &ast;
 
     let data = match data {
@@ -63,8 +63,30 @@ pub fn derive_enum_component(item: TokenStream) -> TokenStream {
         }
     };
 
+    const ATTR_STORAGE_TYPE: &str = "storage_type";
+    const ATTR_MUTABILITY: &str = "mutability";
+
     let attrs = match parse_attrs(&ast) {
-        Ok(list) => list,
+        Ok(list) => {
+            match list.iter().find(|source| {
+                !source.source_type.is_ident(ATTR_STORAGE_TYPE) && !source.source_type.is_ident(ATTR_MUTABILITY)
+            }) {
+                Some(source) => {
+                    return syn::Error::new(
+                        span,
+                        format!(
+                            r#""{}" is not a correct attribute path for EnumComponent
+Available path = ["{ATTR_STORAGE_TYPE}, "{ATTR_MUTABILITY}""]
+Check for typos"#,
+                            source.source_type.get_ident().unwrap()
+                        ),
+                    )
+                    .into_compile_error()
+                    .into()
+                }
+                None => list,
+            }
+        }
         Err(e) => return e.into_compile_error().into(),
     };
 
