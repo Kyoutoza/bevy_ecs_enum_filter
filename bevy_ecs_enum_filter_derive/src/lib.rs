@@ -352,6 +352,7 @@ Check for typos"#,
                     #[doc = #docs]
                     #[doc(hidden)]
                     #[derive(Component)]
+                    #[component(immutable)]
                     pub struct #variants;
                 )*
             }
@@ -372,6 +373,7 @@ Check for typos"#,
                     #[doc = #docs]
                     #[doc(hidden)]
                     #[derive(#bevy::prelude::Component)]
+                    #[component(immutable)]
                     pub struct #variants;
                 )*
             }
