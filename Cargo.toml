@@ -1,6 +1,6 @@
 [package]
 name = "bevy_ecs_enum_filter"
-version = "0.17.0"
+version = "0.18.0"
 edition = "2024"
 description = "cloned https://github.com/mikkelens/bevy_enum_filter forked https://github.com/MrGVSV/bevy_enum_filter and edited"
 
@@ -13,12 +13,12 @@ bevy = ["dep:bevy", "bevy_ecs_enum_filter_derive/bevy"]
 ambiguous_import = ["bevy_ecs_enum_filter_derive/ambiguous_import"]
 
 [dependencies]
-bevy = { version = "0.17", default-features = false, optional = true }
-bevy_ecs = { version = "0.17", default-features = false }
+bevy = { version = "0.18", default-features = false, optional = true }
+bevy_ecs = { version = "0.18", default-features = false }
 bevy_ecs_enum_filter_derive = { path = "./bevy_ecs_enum_filter_derive" }
 
 [dev-dependencies]
-bevy = { version = "0.17", default-features = false }
+bevy = { version = "0.18", default-features = false }
 
 [[example]]
 name = "schedule"
