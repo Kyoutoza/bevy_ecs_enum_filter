@@ -6,7 +6,7 @@ Enum marker check by systems was abolished.
 Instead, ComponentHooks is used for it.
 
 Derive macro name was changed from ```EnumFilter``` to ```EnumComponent```.  
-Because bevy's Component derive macro is missing on code.
+Use EnumComponent macro instead of bevy's Component macro.
 
 The license complies with the original crate.
 
@@ -22,7 +22,7 @@ use bevy_ecs::prelude::*;
 
 fn main() {
     // Clone is required
-    // Component is unnecessary, it will be conflict with EnumComponent
+    // EnumComponent is superset of Component
     #[derive(Clone, Debug, EnumComponent)]
     // default const STORAGE_TYPE for Component implementation is bevy_ecs(bevy::ecs)::component::StorageType::Table
     // if you need to change it, use attribute enum_component(storage_type = bevy_ecs(bevy::ecs)::component::StorageType::SparseSet)
