@@ -233,7 +233,7 @@ Check for typos"#,
                         })
                     })
                 }
-                fn on_replace() -> Option<#bevy::lifecycle::ComponentHook> {
+                fn on_discard() -> Option<#bevy::lifecycle::ComponentHook> {
                     Some(|mut world, #bevy::lifecycle::HookContext { entity, .. }| {
                         let enum_comp = world.get::<#ident>(entity).unwrap().clone();
                         let mut cmd = world.commands();
@@ -274,7 +274,7 @@ Check for typos"#,
                         })
                     })
                 }
-                fn on_replace() -> Option<#bevy::ecs::lifecycle::ComponentHook> {
+                fn on_discard() -> Option<#bevy::ecs::lifecycle::ComponentHook> {
                     Some(|mut world, #bevy::ecs::lifecycle::HookContext { entity, .. }| {
                         let enum_comp = world.get::<#ident>(entity).unwrap().clone();
                         let mut cmd = world.commands();
@@ -315,7 +315,7 @@ Check for typos"#,
                         })
                     })
                 }
-                fn on_replace() -> Option<ComponentHook> {
+                fn on_discard() -> Option<ComponentHook> {
                     Some(|mut world, HookContext { entity, .. }| {
                         let enum_comp = world.get::<#ident>(entity).unwrap().clone();
                         let mut cmd = world.commands();
